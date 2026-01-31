@@ -4,26 +4,23 @@ A newsletter style package for each matchweek of the Premier League that is eith
 
 **Contains:**
 *   A dashboard pdf of all of the most important data and metrics one would use to make an informed bet or fantasy change
-*   The raw data in excel format for people to manipulate
-*   A cheat sheet explaining each ratio and metric presented
+*   So a text message needs to be sent out. Text messaged a .pdf file. 
+*   A visually pleasing document that you are text messaged and email. 
+*   Put on the website aswell. 
+
 
 **The whole business runs off a one page website which:**
 *   Explains the company
 *   Has an email and WhatsApp sign up for which is used for the distribution
-*   Completely free to the user
+*   Completely free to the user. 
 
-### Contact
-*   **Edward Beale**
-*   E: [edwardlangsfordbeale@gmail.com](mailto:edwardlangsfordbeale@gmail.com)
-*   M: +61 416 685 617
-*   L: [LinkedIn Profile](https://www.linkedin.com/in/edward-beale-116111223/)
 
 ---
 
 ### Match Ratios
 *   Each match will have same statistics
 *   But different ratios
-*   And it takes you through the full gameweek.
+*   And it takes you through the full gameweek.\*
 
 ---
 
