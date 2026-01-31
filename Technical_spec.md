@@ -1983,32 +1983,6 @@ function validateRawMetrics(data: RawMetrics): ValidationResult {
 
 ### 10.1 Vercel Configuration
 
-```bash
-#!/bin/bash
-# scripts/insert-matchweek.sh
-
-SUPABASE_URL="your-project-url"
-SUPABASE_KEY="your-service-role-key"
-
-# Create matchweek
-curl -X POST "$SUPABASE_URL/rest/v1/matchweeks" \
-  -H "apikey: $SUPABASE_KEY" \
-  -H "Authorization: Bearer $SUPABASE_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "number": 23,
-    "season": "2024-25",
-    "start_date": "2025-01-25",
-    "end_date": "2025-01-27"
-  }'
-
-# Then insert raw_metrics for each team...
-```
-
----
-
-### 10.2 Vercel Configuration
-
 #### `vercel.json`
 
 ```json
@@ -2020,7 +1994,7 @@ curl -X POST "$SUPABASE_URL/rest/v1/matchweeks" \
 
 **Note:** No cron jobs needed - all newsletter sends are manually triggered by admin.
 
-### 10.3 Environment Variables
+### 10.2 Environment Variables
 
 | Variable | Location | Description |
 |----------|----------|-------------|
@@ -2032,7 +2006,7 @@ curl -X POST "$SUPABASE_URL/rest/v1/matchweeks" \
 | `NEXT_PUBLIC_BASE_URL` | Vercel + Local | Production URL |
 | `ADMIN_SECRET` | Vercel only | Secret for admin endpoints |
 
-### 10.4 Supabase Storage Setup
+### 10.3 Supabase Storage Setup
 
 ```sql
 -- Create storage bucket for PDFs
