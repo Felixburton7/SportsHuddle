@@ -19,6 +19,10 @@ export function SubscribeForm({
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
+    const handleOpenEmail = () => {
+        window.location.href = 'mailto:';
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('loading');
@@ -80,6 +84,14 @@ export function SubscribeForm({
                         {status === 'error' && <span>✗</span>}
                         <span>{message}</span>
                     </div>
+                </div>
+            )}
+
+            {status === 'success' && (
+                <div className="mt-3 flex justify-center">
+                    <Button type="button" variant="secondary" onClick={handleOpenEmail}>
+                        Open email app
+                    </Button>
                 </div>
             )}
 

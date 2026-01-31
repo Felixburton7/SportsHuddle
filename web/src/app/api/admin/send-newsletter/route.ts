@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getBaseUrl } from '@/lib/base-url';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const baseUrl = getBaseUrl(request);
     const dashboardUrl = `${baseUrl}/dashboard?matchweek=${matchweekId}`;
 
     // Send emails in batches
@@ -155,17 +156,21 @@ function generateNewsletterHTML({
 }: NewsletterProps): string {
   const highlightsSection = highlights.length > 0 ? `
     <div style="margin-bottom: 24px;">
-      <h3 style="color: #37003c; margin-bottom: 12px;">🔥 Key Insights This Week</h3>
-      <ul style="padding-left: 20px; color: #6b7280;">
+      <h3 style="color: #0f172a; margin-bottom: 12px;">Key Insights This Week</h3>
+      <ul style="padding-left: 20px; color: #475569;">
         ${highlights.map(h => `<li style="margin-bottom: 8px;">${h}</li>`).join('')}
       </ul>
     </div>
   ` : '';
 
   const pdfSection = pdfUrl ? `
-    <div style="margin-top: 16px;">
-      <a href="${pdfUrl}" style="color: #a8005d; text-decoration: none; font-weight: 600;">
-        📄 Download PDF Report →
+    <div style="margin-bottom: 18px;">
+      <a href="${pdfUrl}" style="display: inline-block; padding: 12px 22px; background: #10b981; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600;">
+        Download PDF Report →
+      </a>
+      <p style="margin: 10px 0 4px 0; color: #64748b; font-size: 12px;">Open in browser:</p>
+      <a href="${pdfUrl}" style="color: #2563eb; font-size: 12px; word-break: break-all; text-decoration: none;">
+        ${pdfUrl}
       </a>
     </div>
   ` : '';
@@ -178,30 +183,30 @@ function generateNewsletterHTML({
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SportsHuddle.ai - Matchweek ${matchweekNumber}</title>
 </head>
-<body style="margin: 0; padding: 0; background: #f9f9f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #37003c;">
+<body style="margin: 0; padding: 0; background: #f5f7fb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #0f172a;">
   <div style="max-width: 600px; margin: 0 auto; padding: 24px;">
-    <div style="background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #eee7f0; box-shadow: 0 12px 30px rgba(55, 0, 60, 0.08);">
+    <div style="background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="margin: 0; font-size: 24px; color: #37003c;">⚽ Sports<span style="color: #a8005d;">Huddle</span>.ai</h1>
-        <p style="color: #6b7280; margin: 8px 0 0 0; font-size: 14px;">Matchweek ${matchweekNumber} • ${season}</p>
+        <h1 style="margin: 0; font-size: 24px; color: #0f172a;">⚽ SportsHuddle.ai</h1>
+        <p style="color: #64748b; margin: 8px 0 0 0; font-size: 14px;">Matchweek ${matchweekNumber} • ${season}</p>
       </div>
 
-      <div style="background: #f6f1f8; border-radius: 12px; padding: 22px; margin-bottom: 24px; border: 1px solid #e6d8ea;">
-        <h2 style="color: #37003c; margin: 0 0 12px 0; font-size: 18px;">Your report is ready!</h2>
-        <p style="color: #6b7280; margin: 0 0 18px 0;">This week's Premier League analytics are now available.</p>
-
-        <a href="${dashboardUrl}" style="display: inline-block; padding: 12px 24px; background: #37003c; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 600;">
-          View Interactive Dashboard →
-        </a>
+      <div style="background: #f8fafc; border-radius: 12px; padding: 22px; margin-bottom: 24px; border: 1px solid #e2e8f0;">
+        <h2 style="color: #0f172a; margin: 0 0 12px 0; font-size: 18px;">Your report is ready</h2>
+        <p style="color: #475569; margin: 0 0 18px 0;">This week's Premier League analytics are now available.</p>
 
         ${pdfSection}
+
+        <a href="${dashboardUrl}" style="display: inline-block; padding: 10px 20px; background: #ffffff; color: #0f172a; text-decoration: none; border-radius: 10px; font-weight: 600; border: 1px solid #cbd5f5;">
+          View Interactive Dashboard →
+        </a>
       </div>
 
       ${highlightsSection}
 
-      <div style="border-top: 1px solid #eee7f0; padding-top: 18px; margin-top: 24px;">
+      <div style="border-top: 1px solid #e2e8f0; padding-top: 18px; margin-top: 24px;">
         <p style="margin: 0;">
-          <a href="${unsubscribeUrl}" style="color: #6b7280; font-size: 11px;">Unsubscribe</a>
+          <a href="${unsubscribeUrl}" style="color: #64748b; font-size: 11px;">Unsubscribe</a>
         </p>
       </div>
     </div>

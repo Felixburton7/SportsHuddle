@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { getBaseUrl } from '@/lib/base-url';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,10 +9,11 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get('token');
+    const baseUrl = getBaseUrl(request);
 
     if (!token) {
         return NextResponse.redirect(
-            `${process.env.NEXT_PUBLIC_BASE_URL}?error=invalid_token`
+            `${baseUrl}?error=invalid_token`
         );
     }
 
@@ -26,11 +28,11 @@ export async function GET(request: NextRequest) {
 
     if (error || !data) {
         return NextResponse.redirect(
-            `${process.env.NEXT_PUBLIC_BASE_URL}?error=invalid_token`
+            `${baseUrl}?error=invalid_token`
         );
     }
 
     return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}?unsubscribed=true`
+        `${baseUrl}?unsubscribed=true`
     );
 }

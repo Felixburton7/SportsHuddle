@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getBaseUrl } from '@/lib/base-url';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Send confirmation email
-        const confirmUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/confirm?token=${confirmToken}`;
+        const confirmUrl = `${getBaseUrl(request)}/api/confirm?token=${confirmToken}`;
 
         await resend.emails.send({
             from: process.env.EMAIL_FROM!,
