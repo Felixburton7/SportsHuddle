@@ -3,7 +3,7 @@ A newsletter style package for each matchweek of the Premier League that is eith
 
 
 **Contains:**
-*   A dashboard pdf of all of the most important data and metrics one would use to make an informed bet or fantasy change
+*   A dashboard pdf of  2) Ratios and Metrics that you would create from the original data.
 *   So a text message needs to be sent out. Text messaged a .pdf file. 
 *   A visually pleasing document that you are text messaged and email. 
 *   Put on the website aswell. 
