@@ -415,7 +415,7 @@ NEXT_PUBLIC_BASE_URL=https://sportshuddle.com
 
 The "Sharp Strategy" betting advice is **editorial content**, not financial advice. Include disclaimer:
 
-> *SportsHuddle provides statistical analysis for entertainment purposes only. We do not encourage gambling. If you choose to bet, please do so responsibly. 18+ only. BeGambleAware.org*
+> *SportsHuddle provides statistical analysis for entertainment purposes only.*
 
 ---
 

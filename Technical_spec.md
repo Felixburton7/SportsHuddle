@@ -1338,7 +1338,6 @@ Use **React-PDF** (`@react-pdf/renderer`) for PDF generation. This allows using 
 │                                             │
 ├─────────────────────────────────────────────┤
 │  Disclaimer: For entertainment only.        │
-│  BeGambleAware.org | 18+                    │
 └─────────────────────────────────────────────┘
 ```
 
@@ -1559,8 +1558,7 @@ export function PDFReport({ matchweekNumber, season, metrics }: PDFReportProps) 
           ))}
           
           <Text style={styles.footer}>
-            SportsHuddle provides statistical analysis for entertainment purposes only. 
-            We do not encourage gambling. 18+ only. BeGambleAware.org
+            SportsHuddle provides statistical analysis for entertainment purposes only.
           </Text>
         </Page>
       ))}
@@ -1727,8 +1725,6 @@ export function newsletterTemplate({
   <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;">
     <p>
       <strong>Disclaimer:</strong> SportsHuddle.ai provides statistical analysis for entertainment purposes only. 
-      We do not encourage gambling. If you choose to bet, please do so responsibly. 18+ only.
-      <a href="https://www.begambleaware.org" style="color: #10b981;">BeGambleAware.org</a>
     </p>
     <p style="margin-top: 16px;">
       <a href="${unsubscribeUrl}" style="color: #999;">Unsubscribe</a>
