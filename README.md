@@ -6,8 +6,9 @@ A newsletter style package for each matchweek of the Premier League that is eith
 *   A dashboard pdf of  2) Ratios and Metrics that you would create from the original data.
 *   So a text message needs to be sent out. Text messaged a .pdf file, and/or email. 
 * ALso there are other ways you can download the document. 
-*   A visually pleasing document that you are text messaged and email. 
-*   Put on the website aswell. 
+*   A visually pleasing document that you are text messaged and/or email. 
+*   Put on the website aswell. As a really simple nice thing. And it is just separated and nice. And its just the ratios and metrics in the website. 
+- This is accessible from the navigation in the webiste and you cna click and filter matchweek, and wihtin the matchweek you can click on the team and it will show you the ratios and metrics for that team for matchweek. 
 
 
 **The whole business runs off a one page website which:**
@@ -19,8 +20,9 @@ A newsletter style package for each matchweek of the Premier League that is eith
 ---
 
 ### Match Ratios
-*   Each match will have same statistics
-*   But different ratios
+*   Each match will have the same 2) Ratios and Metrics that you would create from the original data
+
+*   AKA a dashboard pdf of the ratios and metrics for each team in the matchweek, but of course all the ratios are calculated indivdually for teams and stuff. 
 *   And it takes you through the full gameweek.\*
 
 ---
