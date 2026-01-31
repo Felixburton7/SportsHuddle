@@ -201,6 +201,7 @@ Calculated from `raw_metrics`. One row per team per matchweek. Generated via dat
 |-------|------|-------------|
 | `id` | `uuid` | Primary key |
 | `email` | `text` | Subscriber email (unique) |
+| `phone_number` | `text` | **Future:** For text message distribution |
 | `subscribed_at` | `timestamptz` | Signup timestamp |
 | `confirmed` | `boolean` | Email confirmed |
 | `unsubscribed_at` | `timestamptz` | Null if active |
@@ -302,10 +303,11 @@ For the initial PDF and dashboard, focus on these 10 metrics that provide the cl
 | Day | Task | Owner |
 |-----|------|-------|
 | Sunday | Matchweek concludes | - |
-| Monday AM | Raw data entered via SQL insert | Admin |
-| Monday AM | Run derived metrics calculation | Automatic (DB trigger or Edge Function) |
-| Monday PM | Generate PDF | Automatic (Edge Function) |
-| Monday 6pm | Email dispatched to all subscribers | Automatic (Scheduled Edge Function) |
+| Monday AM | Raw data entered via SQL insert | Admin (Manual) |
+| Monday AM | Derived metrics calculated | Automatic (DB Trigger) |
+| Monday PM | Admin reviews dashboard | Admin |
+| Monday PM | Admin triggers PDF generation | Admin (Manual) |
+| Monday 6pm | Admin triggers Email send | Admin (Manual) |
 
 ### Data Entry (Phase 1 - Manual)
 

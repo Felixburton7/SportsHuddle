@@ -176,95 +176,111 @@ CREATE TABLE raw_metrics (
     matchweek_id UUID NOT NULL REFERENCES matchweeks(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     
-    -- CORE FIELDS (Required for MVP - 25 fields)
-    -- These are the minimum fields needed to calculate the 10 core metrics
+    -- ==========================================
+    -- 1. ATTACKING
+    -- ==========================================
+    npxg_per_90 DECIMAL(5,2),
+    deep_completions INTEGER,
+    xg_per_shot DECIMAL(4,3),
     
-    -- Standard Stats (7 fields)
-    goals_for INTEGER NOT NULL DEFAULT 0,
-    goals_against INTEGER NOT NULL DEFAULT 0,
-    games_played INTEGER NOT NULL DEFAULT 0,
-    actual_points INTEGER NOT NULL DEFAULT 0,
-    xg DECIMAL(5,2) NOT NULL DEFAULT 0,
-    xga DECIMAL(5,2) NOT NULL DEFAULT 0,
-    psxg DECIMAL(5,2) NOT NULL DEFAULT 0,  -- From Squad Advanced Goalkeeping
+    -- ==========================================
+    -- 2. DEFENSIVE
+    -- ==========================================
+    xga DECIMAL(5,2),
+    goals_against INTEGER,
+    ppda DECIMAL(4,1),
+    high_turnovers INTEGER,
     
-    -- Shooting (2 fields)
-    total_shots INTEGER NOT NULL DEFAULT 0,
-    shots_on_target INTEGER NOT NULL DEFAULT 0,
+    -- ==========================================
+    -- 3. DISCIPLINE
+    -- ==========================================
+    fouls_committed INTEGER,
+    yellow_cards INTEGER,
+    red_cards INTEGER,
+    penalty_conceded_freq DECIMAL(4,2),
     
-    -- Passing (2 fields)
-    total_passes INTEGER NOT NULL DEFAULT 0,
-    progressive_passes INTEGER NOT NULL DEFAULT 0,
+    -- ==========================================
+    -- 4. PHYSICAL (Manual inputs)
+    -- ==========================================
+    net_availability_score DECIMAL(5,2),
+    rest_days_differential INTEGER,
+    direct_speed_mps DECIMAL(4,2),
+    avg_mins_last_7 INTEGER,
+    avg_mins_last_28 INTEGER,
     
-    -- Possession (6 fields)
-    progressive_carries INTEGER NOT NULL DEFAULT 0,
-    possession_pct DECIMAL(4,1),
-    touches_att_3rd INTEGER NOT NULL DEFAULT 0,
-    touches_total INTEGER NOT NULL DEFAULT 0,
-    dispossessed INTEGER NOT NULL DEFAULT 0,
-    miscontrols INTEGER NOT NULL DEFAULT 0,
+    -- ==========================================
+    -- 5. EFFICIENCY & STANDARD
+    -- ==========================================
+    xg DECIMAL(5,2),
+    goals_for INTEGER,
+    psxg DECIMAL(5,2),
+    set_piece_xg DECIMAL(5,2),
     
-    -- Defensive Actions (2 fields)
-    tackles_att_3rd INTEGER NOT NULL DEFAULT 0,
-    interceptions INTEGER NOT NULL DEFAULT 0,
-    
-    -- Goal & Shot Creation (1 field)
-    sca INTEGER NOT NULL DEFAULT 0,  -- Shot-creating actions
-    
-    -- Discipline (2 fields)
-    fouls_committed INTEGER NOT NULL DEFAULT 0,
-    yellow_cards INTEGER NOT NULL DEFAULT 0,
-    
-    -- Opponent Stats (1 field - can use league average for MVP)
-    opponent_touches_att_3rd INTEGER NOT NULL DEFAULT 0,
-    
-    -- EXTENDED FIELDS (Optional - for future extended metrics)
-    -- Standard Stats
-    npxg DECIMAL(5,2),
-    xag DECIMAL(5,2),
+    -- FBRef Standard Stats
     minutes_played INTEGER,
     squad_avg_age DECIMAL(3,1),
+    actual_points INTEGER,
+    games_played INTEGER,
+    cohesion_quotient DECIMAL(5,2),
+    form_delta DECIMAL(5,2),
     
-    -- Shooting
+    -- FBRef Shooting
+    total_shots INTEGER,
+    shots_on_target INTEGER,
     avg_shot_distance DECIMAL(4,1),
     
-    -- Passing
+    -- FBRef Passing
+    total_passes INTEGER,
     pass_completion_pct DECIMAL(4,1),
+    pass_total_distance INTEGER,
+    progressive_passes INTEGER,
     progressive_pass_dist INTEGER,
     passes_into_pen_area INTEGER,
     crosses INTEGER,
     att_3rd_passes INTEGER,
     def_3rd_passes INTEGER,
     
-    -- Possession
+    -- FBRef Possession
+    possession_pct DECIMAL(4,1),
+    touches_att_3rd INTEGER,
     touches_def_3rd INTEGER,
+    touches_mid_3rd INTEGER,
+    touches_total INTEGER,
+    progressive_carries INTEGER,
     progressive_carry_dist INTEGER,
-    dribble_success_pct DECIMAL(4,1),
+    dispossessed INTEGER,
+    miscontrols INTEGER,
+    dribbles_success_pct DECIMAL(4,1),
     
-    -- Defensive Actions
+    -- FBRef Defensive Actions
+    tackles_att_3rd INTEGER,
     tackles_mid_3rd INTEGER,
     tackles_def_3rd INTEGER,
+    tackles_total_won INTEGER,
+    interceptions INTEGER,
     blocks INTEGER,
-    pressures INTEGER,
+    pressures_success INTEGER,
     pressure_success_pct DECIMAL(4,1),
-    recoveries INTEGER,
+    defensive_line_height DECIMAL(4,1),
     
-    -- Goalkeeping
+    -- FBRef Goalkeeping
     keeper_saves INTEGER,
+    save_pct DECIMAL(4,1),
     crosses_stopped INTEGER,
     opa_actions INTEGER,
     avg_opa_distance DECIMAL(4,1),
     
-    -- Discipline
-    red_cards INTEGER,
-    
-    -- Understat/Derived inputs
-    ppda DECIMAL(4,1),
-    deep_completions INTEGER,
-    opponent_passes INTEGER,
+    -- Derived/Opponent inputs
     opponent_crosses INTEGER,
+    opponent_passes INTEGER,
+    opponent_att_3rd_touches INTEGER,
+    opponent_losses INTEGER,
+    opponent_avg_elo INTEGER,
+    league_avg_elo INTEGER,
     shots_against INTEGER,
     shots_on_target_against INTEGER,
+    recoveries INTEGER,
+    sca INTEGER,
     
     UNIQUE(team_id, matchweek_id)
 );
@@ -283,31 +299,47 @@ CREATE TABLE derived_metrics (
     matchweek_id UUID NOT NULL REFERENCES matchweeks(id) ON DELETE CASCADE,
     calculated_at TIMESTAMPTZ DEFAULT NOW(),
     
-    -- Core Metrics (MVP)
+    -- THE SHARP STRATEGY METRICS
+    set_piece_vulnerability DECIMAL(4,3),
     pythagorean_wins DECIMAL(4,1),
+    acwr_workload DECIMAL(4,2),
+    sequence_efficiency DECIMAL(5,2),
+    verticality_index DECIMAL(5,2),
     shot_quality_delta DECIMAL(4,3),
     defensive_fragility DECIMAL(5,2),
-    verticality_index DECIMAL(5,2),
-    sieve_index DECIMAL(4,3),
     field_tilt DECIMAL(4,1),
     high_press_efficiency DECIMAL(4,3),
-    clinical_ratio DECIMAL(4,3),
-    ball_retention_index DECIMAL(4,3),
-    discipline_roi DECIMAL(4,1),
-    
-    -- Extended Metrics
-    sequence_efficiency DECIMAL(5,1),
+    sieve_index DECIMAL(4,3),
+    deep_efficiency DECIMAL(4,2),
+    burnout_tracker DECIMAL(5,3),
+    chaos_score DECIMAL(4,2),
+    rotation_fragility DECIMAL(4,3),
+    ball_recovery_time DECIMAL(5,2),
+    game_state_xg_bias DECIMAL(4,2),
+    defensive_line_height DECIMAL(4,1),
+    sca_efficiency_ratio DECIMAL(4,2),
+    bench_impact_gda DECIMAL(4,2),
+    chaos_recovery_score DECIMAL(4,2),
+    elo_adjusted_xpoints DECIMAL(5,2),
+    clinical_ratio DECIMAL(4,2),
     progressive_reliance DECIMAL(4,3),
+    keeper_save_value DECIMAL(4,2),
     chaos_press DECIMAL(4,2),
-    direct_attack_index DECIMAL(4,2),
-    wall_factor DECIMAL(4,2),
+    cross_efficiency DECIMAL(4,3),
+    expected_discipline DECIMAL(4,2),
+    ball_retention_index DECIMAL(4,3),
     safe_possession_ratio DECIMAL(4,2),
     recovery_efficiency DECIMAL(4,2),
-    keeper_save_value DECIMAL(4,2),
-    cross_efficiency DECIMAL(4,3),
-    set_piece_vulnerability DECIMAL(4,3),
+    discipline_roi DECIMAL(4,2),
+    progression_dominance DECIMAL(4,2),
+    save_pct_vs_xg DECIMAL(4,3),
+    command_of_area_pct DECIMAL(4,3),
+    direct_attack_index DECIMAL(4,2),
+    wall_factor DECIMAL(4,2),
+    high_volume_pressing INTEGER,
+    pass_difficulty_adjusted_pct DECIMAL(4,3),
     sweeper_aggression DECIMAL(4,1),
-    
+
     UNIQUE(team_id, matchweek_id)
 );
 
@@ -321,6 +353,7 @@ CREATE INDEX idx_derived_metrics_matchweek ON derived_metrics(matchweek_id);
 CREATE TABLE subscribers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email TEXT NOT NULL UNIQUE,
+    phone_number TEXT, -- Future capability
     confirmed BOOLEAN DEFAULT FALSE,
     confirm_token UUID DEFAULT uuid_generate_v4(),
     subscribed_at TIMESTAMPTZ DEFAULT NOW(),
@@ -358,161 +391,217 @@ CREATE INDEX idx_email_log_matchweek ON email_log(matchweek_id);
 -- =============================================================================
 CREATE OR REPLACE FUNCTION calculate_derived_metrics()
 RETURNS TRIGGER AS $$
-DECLARE
-    v_pythagorean DECIMAL(4,1);
-    v_shot_quality DECIMAL(4,3);
-    v_defensive_fragility DECIMAL(5,2);
-    v_verticality DECIMAL(5,2);
-    v_sieve DECIMAL(4,3);
-    v_field_tilt DECIMAL(4,1);
-    v_high_press DECIMAL(4,3);
-    v_clinical DECIMAL(4,3);
-    v_retention DECIMAL(4,3);
-    v_discipline DECIMAL(4,1);
 BEGIN
-    -- Pythagorean Wins: (GF^1.35 / (GF^1.35 + GA^1.35)) × Games × 3
-    IF NEW.goals_for + NEW.goals_against > 0 THEN
-        v_pythagorean := (
-            POWER(NEW.goals_for, 1.35) / 
-            (POWER(NEW.goals_for, 1.35) + POWER(NEW.goals_against, 1.35))
-        ) * NEW.games_played * 3;
-    ELSE
-        v_pythagorean := 0;
-    END IF;
-    
-    -- Shot Quality Delta: xG / total_shots
-    IF NEW.total_shots > 0 THEN
-        v_shot_quality := NEW.xg / NEW.total_shots;
-    ELSE
-        v_shot_quality := 0;
-    END IF;
-    
-    -- Defensive Fragility: xGA + (PSxG - GA)
-    v_defensive_fragility := NEW.xga + (NEW.psxg - NEW.goals_against);
-    
-    -- Verticality Index: (PrgP + PrgC) / possession_pct
-    IF NEW.possession_pct > 0 THEN
-        v_verticality := (NEW.progressive_passes + NEW.progressive_carries) / NEW.possession_pct;
-    ELSE
-        v_verticality := 0;
-    END IF;
-    
-    -- Sieve Index: (PSxG - GA) / xGA
-    IF NEW.xga > 0 THEN
-        v_sieve := (NEW.psxg - NEW.goals_against) / NEW.xga;
-    ELSE
-        v_sieve := 0;
-    END IF;
-    
-    -- Field Tilt: att_3rd_touches / (att_3rd_touches + opp_att_3rd_touches)
-    IF NEW.touches_att_3rd + NEW.opponent_touches_att_3rd > 0 THEN
-        v_field_tilt := (NEW.touches_att_3rd::DECIMAL / 
-            (NEW.touches_att_3rd + NEW.opponent_touches_att_3rd)) * 100;
-    ELSE
-        v_field_tilt := 50;
-    END IF;
-    
-    -- High-Press Efficiency: SCA / (att_3rd_tackles + interceptions)
-    IF NEW.tackles_att_3rd + NEW.interceptions > 0 THEN
-        v_high_press := NEW.sca::DECIMAL / (NEW.tackles_att_3rd + NEW.interceptions);
-    ELSE
-        v_high_press := 0;
-    END IF;
-    
-    -- Clinical Ratio: goals / shots_on_target
-    IF NEW.shots_on_target > 0 THEN
-        v_clinical := NEW.goals_for::DECIMAL / NEW.shots_on_target;
-    ELSE
-        v_clinical := 0;
-    END IF;
-    
-    -- Ball Retention Index: (dispossessed + miscontrols) / touches
-    IF NEW.touches_total > 0 THEN
-        v_retention := (NEW.dispossessed + NEW.miscontrols)::DECIMAL / NEW.touches_total;
-    ELSE
-        v_retention := 0;
-    END IF;
-    
-    -- Discipline ROI: fouls / yellow_cards
-    IF NEW.yellow_cards > 0 THEN
-        v_discipline := NEW.fouls_committed::DECIMAL / NEW.yellow_cards;
-    ELSE
-        v_discipline := NEW.fouls_committed; -- No cards = all fouls "free"
-    END IF;
-    
-    -- Upsert derived metrics
     INSERT INTO derived_metrics (
         team_id,
         matchweek_id,
+        set_piece_vulnerability,
         pythagorean_wins,
+        acwr_workload,
+        sequence_efficiency,
+        verticality_index,
         shot_quality_delta,
         defensive_fragility,
-        verticality_index,
-        sieve_index,
         field_tilt,
         high_press_efficiency,
+        sieve_index,
+        deep_efficiency,
+        burnout_tracker,
+        chaos_score,
+        rotation_fragility,
+        ball_recovery_time,
+        game_state_xg_bias,
+        defensive_line_height,
+        sca_efficiency_ratio,
+        bench_impact_gda,
+        chaos_recovery_score,
+        elo_adjusted_xpoints,
         clinical_ratio,
-        ball_retention_index,
-        discipline_roi,
-        -- Extended metrics
-        sequence_efficiency,
         progressive_reliance,
+        keeper_save_value,
         chaos_press,
-        direct_attack_index,
-        wall_factor,
+        cross_efficiency,
+        expected_discipline,
+        ball_retention_index,
         safe_possession_ratio,
         recovery_efficiency,
-        keeper_save_value,
-        cross_efficiency,
-        set_piece_vulnerability,
+        discipline_roi,
+        progression_dominance,
+        save_pct_vs_xg,
+        command_of_area_pct,
+        direct_attack_index,
+        wall_factor,
+        high_volume_pressing,
+        pass_difficulty_adjusted_pct,
         sweeper_aggression
     ) VALUES (
         NEW.team_id,
         NEW.matchweek_id,
-        v_pythagorean,
-        v_shot_quality,
-        v_defensive_fragility,
-        v_verticality,
-        v_sieve,
-        v_field_tilt,
-        v_high_press,
-        v_clinical,
-        v_retention,
-        v_discipline,
-        -- Extended metrics calculations
-        CASE WHEN NEW.total_shots > 0 THEN NEW.total_passes::DECIMAL / NEW.total_shots ELSE 0 END,
-        CASE WHEN NEW.total_passes > 0 THEN NEW.progressive_passes::DECIMAL / NEW.total_passes ELSE 0 END,
-        CASE WHEN NEW.tackles_def_3rd > 0 THEN NEW.tackles_att_3rd::DECIMAL / NEW.tackles_def_3rd ELSE 0 END,
-        CASE WHEN NEW.progressive_passes > 0 THEN NEW.progressive_carries::DECIMAL / NEW.progressive_passes ELSE 0 END,
-        CASE WHEN NEW.shots_on_target_against > 0 THEN NEW.shots_against::DECIMAL / NEW.shots_on_target_against ELSE 0 END,
-        CASE WHEN NEW.att_3rd_passes > 0 THEN NEW.def_3rd_passes::DECIMAL / NEW.att_3rd_passes ELSE 0 END,
-        CASE WHEN NEW.opponent_passes > 0 THEN NEW.recoveries::DECIMAL / (NEW.opponent_passes / 100.0) ELSE 0 END,
-        CASE WHEN NEW.goals_against > 0 THEN NEW.psxg / NEW.goals_against ELSE NEW.psxg END,
-        CASE WHEN NEW.total_passes > 0 THEN NEW.crosses::DECIMAL / NEW.total_passes ELSE 0 END,
+        
+        -- 1. Set-Piece Vuln
         CASE WHEN NEW.opponent_crosses > 0 THEN 1 - (NEW.crosses_stopped::DECIMAL / NEW.opponent_crosses) ELSE 0 END,
+        
+        -- 2. Pythagorean
+        CASE WHEN (NEW.goals_for + NEW.goals_against) > 0 THEN 
+             (POWER(NEW.goals_for, 1.35) / (POWER(NEW.goals_for, 1.35) + POWER(NEW.goals_against, 1.35))) * NEW.games_played * 3
+             ELSE 0 END,
+             
+        -- 3. ACWR
+        CASE WHEN NEW.avg_mins_last_28 > 0 THEN NEW.avg_mins_last_7::DECIMAL / NEW.avg_mins_last_28 ELSE 0 END,
+        
+        -- 4. Sequence Efficiency
+        CASE WHEN NEW.total_shots > 0 THEN NEW.total_passes::DECIMAL / NEW.total_shots ELSE 0 END,
+        
+        -- 5. Verticality Index
+        CASE WHEN NEW.possession_pct > 0 THEN (NEW.progressive_passes + NEW.progressive_carries)::DECIMAL / NEW.possession_pct ELSE 0 END,
+        
+        -- 6. Shot Quality Delta
+        CASE WHEN NEW.total_shots > 0 THEN NEW.xg::DECIMAL / NEW.total_shots ELSE 0 END,
+        
+        -- 7. Defensive Fragility
+        NEW.xga + (NEW.psxg - NEW.goals_against),
+        
+        -- 8. Field Tilt
+        CASE WHEN (NEW.touches_att_3rd + NEW.opponent_att_3rd_touches) > 0 THEN 
+             (NEW.touches_att_3rd::DECIMAL / (NEW.touches_att_3rd + NEW.opponent_att_3rd_touches)) * 100
+             ELSE 50 END,
+             
+        -- 9. High-Press Efficiency
+        CASE WHEN (NEW.tackles_att_3rd + NEW.interceptions) > 0 THEN 
+             NEW.sca::DECIMAL / (NEW.tackles_att_3rd + NEW.interceptions)
+             ELSE 0 END,
+             
+        -- 10. Sieve Index
+        CASE WHEN NEW.xga > 0 THEN (NEW.psxg - NEW.goals_against) / NEW.xga ELSE 0 END,
+        
+        -- 11. DCE (Deep Efficiency)
+        CASE WHEN NEW.deep_completions > 0 THEN NEW.total_shots::DECIMAL / NEW.deep_completions ELSE 0 END,
+        
+        -- 12. Burnout Tracker
+        CASE WHEN (NEW.ppda * NEW.squad_avg_age) > 0 THEN 1.0 / (NEW.ppda * NEW.squad_avg_age) ELSE 0 END,
+        
+        -- 13. Chaos Score
+        CASE WHEN NEW.tackles_att_3rd > 0 THEN NEW.npxg_per_90 / NEW.tackles_att_3rd ELSE 0 END,
+        
+        -- 14. Rotation Fragility (requires player-level data - deferred to Phase 2)
+        NULL,
+        
+        -- 15. Ball Recovery Time (requires event timing data - deferred to Phase 2)
+        NULL,
+        
+        -- 16. Game-State xG Bias (requires game-state splits - deferred to Phase 2)
+        NULL,
+        
+        -- 17. Def Line Height
+        NEW.defensive_line_height,
+        
+        -- 18. SCA Efficiency
+        CASE WHEN NEW.sca > 0 THEN NEW.xg::DECIMAL / NEW.sca ELSE 0 END,
+        
+        -- 19. Bench Impact GDA (requires sub appearance data - deferred to Phase 2)
+        NULL,
+        
+        -- 20. Chaos Recovery Score
+        CASE WHEN NEW.opponent_losses > 0 THEN NEW.high_turnovers::DECIMAL / NEW.opponent_losses ELSE 0 END,
+        
+        -- 21. Elo-Adjusted xPoints
+        CASE WHEN NEW.league_avg_elo > 0 THEN NEW.actual_points * (NEW.opponent_avg_elo::DECIMAL / NEW.league_avg_elo) ELSE NEW.actual_points END,
+        
+        -- 22. Clinical Ratio
+        CASE WHEN NEW.shots_on_target > 0 THEN NEW.goals_for::DECIMAL / NEW.shots_on_target ELSE 0 END,
+        
+        -- 23. Progressive Reliance
+        CASE WHEN NEW.total_passes > 0 THEN NEW.progressive_passes::DECIMAL / NEW.total_passes ELSE 0 END,
+        
+        -- 24. Keeper Save Value
+        CASE WHEN NEW.goals_against > 0 THEN NEW.psxg::DECIMAL / NEW.goals_against ELSE 0 END,
+        
+        -- 25. Chaos Press
+        CASE WHEN NEW.tackles_def_3rd > 0 THEN NEW.tackles_att_3rd::DECIMAL / NEW.tackles_def_3rd ELSE 0 END,
+        
+        -- 26. Cross Efficiency
+        CASE WHEN NEW.total_passes > 0 THEN NEW.crosses::DECIMAL / NEW.total_passes ELSE 0 END,
+        
+        -- 27. Expected Discipline
+        CASE WHEN NEW.fouls_committed > 0 THEN NEW.yellow_cards::DECIMAL / NEW.fouls_committed ELSE 0 END,
+        
+        -- 28. Ball Retention Index
+        CASE WHEN NEW.touches_total > 0 THEN (NEW.dispossessed + NEW.miscontrols)::DECIMAL / NEW.touches_total ELSE 0 END,
+        
+        -- 29. Safe Poss Ratio
+        CASE WHEN NEW.att_3rd_passes > 0 THEN NEW.def_3rd_passes::DECIMAL / NEW.att_3rd_passes ELSE 0 END,
+        
+        -- 30. Recovery Efficiency
+        CASE WHEN NEW.opponent_passes > 0 THEN NEW.recoveries::DECIMAL / (NEW.opponent_passes / 100.0) ELSE 0 END,
+        
+        -- 31. Discipline ROI
+        CASE WHEN NEW.yellow_cards > 0 THEN NEW.fouls_committed::DECIMAL / NEW.yellow_cards ELSE 0 END,
+        
+        -- 32. Progression Dominance
+        CASE WHEN NEW.progressive_pass_dist > 0 THEN NEW.progressive_carry_dist::DECIMAL / NEW.progressive_pass_dist ELSE 0 END,
+        
+        -- 33. Save % vs xG
+        CASE WHEN NEW.shots_on_target > 0 THEN 
+             (NEW.save_pct/100.0) - (1.0 - (NEW.psxg / NEW.shots_on_target))
+             ELSE 0 END,
+             
+        -- 34. Command of Area
+        CASE WHEN NEW.opponent_crosses > 0 THEN NEW.crosses_stopped::DECIMAL / NEW.opponent_crosses ELSE 0 END,
+        
+        -- 35. Direct Attack Index
+        CASE WHEN NEW.progressive_passes > 0 THEN NEW.progressive_carries::DECIMAL / NEW.progressive_passes ELSE 0 END,
+        
+        -- 36. Wall Factor
+        CASE WHEN NEW.shots_on_target_against > 0 THEN NEW.shots_against::DECIMAL / NEW.shots_on_target_against ELSE 0 END,
+        
+        -- 37. High Vol Pressing
+        (NEW.tackles_att_3rd + NEW.interceptions),
+        
+        -- 38. Pass Diff Adj
+        CASE WHEN NEW.pass_total_distance > 0 THEN (NEW.pass_completion_pct/100.0) * (NEW.progressive_pass_dist::DECIMAL / NEW.pass_total_distance) ELSE 0 END,
+        
+        -- 39. Sweeper Aggression
         NEW.avg_opa_distance
     )
     ON CONFLICT (team_id, matchweek_id) DO UPDATE SET
+        set_piece_vulnerability = EXCLUDED.set_piece_vulnerability,
         pythagorean_wins = EXCLUDED.pythagorean_wins,
+        acwr_workload = EXCLUDED.acwr_workload,
+        sequence_efficiency = EXCLUDED.sequence_efficiency,
+        verticality_index = EXCLUDED.verticality_index,
         shot_quality_delta = EXCLUDED.shot_quality_delta,
         defensive_fragility = EXCLUDED.defensive_fragility,
-        verticality_index = EXCLUDED.verticality_index,
-        sieve_index = EXCLUDED.sieve_index,
         field_tilt = EXCLUDED.field_tilt,
         high_press_efficiency = EXCLUDED.high_press_efficiency,
+        sieve_index = EXCLUDED.sieve_index,
+        deep_efficiency = EXCLUDED.deep_efficiency,
+        burnout_tracker = EXCLUDED.burnout_tracker,
+        chaos_score = EXCLUDED.chaos_score,
+        rotation_fragility = EXCLUDED.rotation_fragility,
+        ball_recovery_time = EXCLUDED.ball_recovery_time,
+        game_state_xg_bias = EXCLUDED.game_state_xg_bias,
+        defensive_line_height = EXCLUDED.defensive_line_height,
+        sca_efficiency_ratio = EXCLUDED.sca_efficiency_ratio,
+        bench_impact_gda = EXCLUDED.bench_impact_gda,
+        chaos_recovery_score = EXCLUDED.chaos_recovery_score,
+        elo_adjusted_xpoints = EXCLUDED.elo_adjusted_xpoints,
         clinical_ratio = EXCLUDED.clinical_ratio,
-        ball_retention_index = EXCLUDED.ball_retention_index,
-        discipline_roi = EXCLUDED.discipline_roi,
-        sequence_efficiency = EXCLUDED.sequence_efficiency,
         progressive_reliance = EXCLUDED.progressive_reliance,
+        keeper_save_value = EXCLUDED.keeper_save_value,
         chaos_press = EXCLUDED.chaos_press,
-        direct_attack_index = EXCLUDED.direct_attack_index,
-        wall_factor = EXCLUDED.wall_factor,
+        cross_efficiency = EXCLUDED.cross_efficiency,
+        expected_discipline = EXCLUDED.expected_discipline,
+        ball_retention_index = EXCLUDED.ball_retention_index,
         safe_possession_ratio = EXCLUDED.safe_possession_ratio,
         recovery_efficiency = EXCLUDED.recovery_efficiency,
-        keeper_save_value = EXCLUDED.keeper_save_value,
-        cross_efficiency = EXCLUDED.cross_efficiency,
-        set_piece_vulnerability = EXCLUDED.set_piece_vulnerability,
+        discipline_roi = EXCLUDED.discipline_roi,
+        progression_dominance = EXCLUDED.progression_dominance,
+        save_pct_vs_xg = EXCLUDED.save_pct_vs_xg,
+        command_of_area_pct = EXCLUDED.command_of_area_pct,
+        direct_attack_index = EXCLUDED.direct_attack_index,
+        wall_factor = EXCLUDED.wall_factor,
+        high_volume_pressing = EXCLUDED.high_volume_pressing,
+        pass_difficulty_adjusted_pct = EXCLUDED.pass_difficulty_adjusted_pct,
         sweeper_aggression = EXCLUDED.sweeper_aggression,
         calculated_at = NOW();
     
@@ -535,17 +624,18 @@ RETURNS TABLE (
     team_name TEXT,
     team_short_name TEXT,
     team_logo_url TEXT,
-    pythagorean_wins DECIMAL,
     actual_points INTEGER,
+    -- Top Key Metrics
+    pythagorean_wins DECIMAL,
     shot_quality_delta DECIMAL,
     defensive_fragility DECIMAL,
     verticality_index DECIMAL,
     sieve_index DECIMAL,
-    field_tilt DECIMAL,
     high_press_efficiency DECIMAL,
     clinical_ratio DECIMAL,
-    ball_retention_index DECIMAL,
-    discipline_roi DECIMAL
+    discipline_roi DECIMAL,
+    -- All other metrics (jsonb for flexibility if needed, or specific columns)
+    metrics JSONB
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -553,17 +643,16 @@ BEGIN
         t.name,
         t.short_name,
         t.logo_url,
-        dm.pythagorean_wins,
         rm.actual_points,
+        dm.pythagorean_wins,
         dm.shot_quality_delta,
         dm.defensive_fragility,
         dm.verticality_index,
         dm.sieve_index,
-        dm.field_tilt,
         dm.high_press_efficiency,
         dm.clinical_ratio,
-        dm.ball_retention_index,
-        dm.discipline_roi
+        dm.discipline_roi,
+        to_jsonb(dm.*) - 'team_id' - 'matchweek_id' - 'created_at' as metrics
     FROM teams t
     JOIN derived_metrics dm ON t.id = dm.team_id
     JOIN raw_metrics rm ON t.id = rm.team_id AND rm.matchweek_id = dm.matchweek_id
@@ -637,6 +726,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
+  phone: z.string().optional(), // Added for future support
 });
 
 export async function POST(request: NextRequest) {

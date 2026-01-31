@@ -1,37 +1,26 @@
 # SportsHuddle
-A newsletter style package for each matchweek of the Premier League that is either emailed or messaged. Opted in by the user they choose text or email or both. This emailing and messaging will be automated in supabase. 
+A newsletter style package for each matchweek of the Premier League that is emailed to subscribers. 
 
+**Future Roadmap:** Text message distribution (coming soon).
 
 **Contains:**
-*   A dashboard pdf of  2) Ratios and Metrics that you would create from the original data.
-*   So a text message needs to be sent out. Text messaged a .pdf file, and/or email. 
-* ALso there are other ways you can download the document. 
-*   A visually pleasing document that you are text messaged and/or email. 
-*   Put on the website aswell. As a really simple nice thing. And it is just separated and nice. And its just the ratios and metrics in the website. 
-- This is accessible from the navigation in the webiste and you cna click and filter matchweek, and wihtin the matchweek you can click on the team and it will show you the ratios and metrics for that team for matchweek. 
-
+*   A dashboard of **Ratios and Metrics** created from original match data.
+*   A visually pleasing PDF document sent via email.
+*   A companion website where users can view the ratios and metrics for each matchweek and team.
 
 **The whole business runs off a one page website which:**
 *   Explains the company
-*   Has an email and phone number sign up for which is used for the distribution
-*   Completely free to the user. 
-
+*   Has an email sign up for the newsletter distribution
+*   Is completely free to the user.
 
 ---
 
 ### Match Ratios
-*   Each match will have the same 2) Ratios and Metrics that you would create from the original data
-
-*   AKA a dashboard pdf of the ratios and metrics for each team in the matchweek, but of course all the ratios are calculated indivdually for teams and stuff. 
-*   And it takes you through the full gameweek.\*
+Each matchweek will feature a set of "Sharp" Ratios and Metrics created from raw FBRef and Understat data. These are designed to provide betting value and deeper tactical insight than standard stats.
 
 ---
-How it works. 
-To start with we want the option to put in the raw data manually aswell. 1) Raw Data
 
-## Architecture
-
-### 1) Raw Data
+## 1) Raw Data (Source Inputs)
 
 | Category | Key Metric | Professional Use Case | Scraping Target (Source) |
 | --- | --- | --- | --- |
@@ -64,8 +53,9 @@ To start with we want the option to put in the raw data manually aswell. 1) Raw 
 
 ---
 
-### 2) Ratios and Metrics that you would create from the original data
-*This is the results that we will send to users.*
+## 2) Ratios and Metrics (Calculated for Users)
+
+These are the results we will send to users.
 
 | Metric | Definition | The Sharp Strategy (How to use it) | DIY Calculations (Excel/Math) |
 | --- | --- | --- | --- |
@@ -83,38 +73,28 @@ To start with we want the option to put in the raw data manually aswell. 1) Raw 
 | **Burnout Tracker** | Relationship between pressing intensity and squad age. | Find high-press teams that "gas out" late. Bet on late goals against them. | $1 / (PPDA \times \text{Average Squad Age})$ |
 | **Chaos Score** | Scoring efficiency relative to high-intensity defensive actions. | Identifies "Giant Killers" who thrive on chaos rather than control. | $npxG / \text{Att 3rd Tackles}$ |
 | **Rotation Fragility** | Concentration of xG contribution in the starting XI. | Quantifies the "Drop-off" for cup games or mid-week rotation. | $\sum \text{npxG (Top 11)} / \sum \text{npxG (Total Squad)}$ |
-| **ACWR (Workload)** | **Acute:Chronic Workload Ratio. Compares a team's intensity over the last 7 days vs. their 28-day baseline.** | **Predict Fatigue Meltdowns: A ratio > 1.5 suggests "Red-Lining." These teams are massive risks for soft-tissue injuries or conceding late goals. Bet against them in the 75'+ Live Market.** | Avg_Mins_Last_7 / Avg_Mins_Last_28 |
-| **Sequence Efficiency** | Measures how many passes are required to produce one shot. It separates "Productive" from "Sterile" possession. | **Identify Possession Traps: High scores (60+) indicate "Sterile Tiki-Taka" (lots of passing, no threat). Great for UNDER 2.5 Goals. Low scores (<25) indicate lethal, direct counter-attacks.** | Total_Passes / Total_Shots |
-| **Verticality Index** | Quantifies how much a team progresses the ball forward per unit of possession. | **Spot Under-the-Radar Attacks: High verticality teams create more "Big Chances." If their goals are low but Verticality is high, they are a "Buy Low" for next-game goal totals.** | (PrgP + PrgC) / Possession_% |
-| **Shot Quality Delta** | The average $xG$ value of every shot taken. High values show a team creates high-probability "sitters." | **Verify Finishing Luck: Teams with a high delta ($>0.14$) are sustainable. Teams with a low delta ($<0.07$) rely on "long-shot prayers" and are due for a scoring drought.** | Total_xG / Total_Shots |
-| **Defensive Fragility** | Calculates the "hidden" goals a defense should have conceded if not for elite goalkeeper saves. | **Predict Defensive Collapse: If Actual Goals Against is much lower than this score, the defense is a "fake." Bet BTTS: YES when they face a clinical striker.** | xGA + (PSxG - GA) |
-| **DIY Field Tilt** | Territorial dominance. It measures the share of "final third" activity between two teams. | **Identify the "Siege": If Field Tilt is > 70% but the game is 0-0 at halftime, the odds for "Team A to Score" are often underpriced. This is a high-value Live Betting signal.** | Att_3rd_Touches / (Team_Att_3rd + Opp_Att_3rd) |
-| **High-Press Efficiency** | Measures how often a high turnover (winning the ball back) results in an actual shot or chance ($SCA$). | **Target "Pressing Traps": High Efficiency teams (like Liverpool/City) punish teams that play out from the back. Match them against "Low Verticality" defenses for Over Cards.** | SCA / (Att_3rd_Tackles + Interceptions) |
-| **Sieve Index** | The ratio of "miracle saves" to total danger. Quantifies how much a team is being bailed out by one player. | **Fade the "One-Man Defense": If Sieve Index is > 0.40, the team is highly volatile. If the keeper has a bad day, they lose big. Excellent for Laying the Favorite (betting against).** | (PSxG - GA) / xGA |
-| **DCE (Deep Efficiency)** | Percentage of danger-zone entries (Deep Completions) that result in a shot. | **Filter "Over-Passers": Low DCE teams (Arsenal under-pressure) "walk it in." High DCE teams (Villa/Brighton) are "shoot-on-sight." Use for Shot Volume prop markets.** | Total_Shots / Deep_Completions |
-| **Rotation Fragility** | Concentration of a team's output ($xG/xA$) within their top 11 players. | **Quantify "Bench Drop-off": If score is > 0.85, the team has no depth. If 2+ starters are missing (check lineups 60 mins before KO), their win probability drops by ~15-20%.** | Sum_xG_Top_11 / Sum_xG_Full_Squad |
-| **BRT (Ball Recovery Time)** | Measures the average seconds it takes a team to regain possession after losing it. | **Identify "Intensity Drops": If a team's BRT increases by >25% mid-game, they are gassing out. Bet against them for the Next Goal even if they are currently leading.** | Total_Defensive_Half_Time / Number_of_Recoveries |
-| **Game-State xG Bias** | Compares xG generated when the score is level vs. when a team is leading/trailing. | **Filter "Fake" Dominance: Some teams only look good when losing (chasing). If a team's xG is 2x higher when trailing, they aren't "elite"—they are just desperate. Fade them as favorites.** | (xG_Trailing) / (xG_Level) |
-| **Defensive Line Height (Proxy)** | Estimates how far up the pitch the defense sits based on where they make tackles. | **Spot the "High Line" Trap: High line ($>45m$) vs. Fast Forwards = Over 2.5 Goals. Low line ($<30m$) vs. Slow Attackers = Under 2.5 Goals.** | Average_Height_of_Def_Actions (from Heatmaps) |
-| **SCA Efficiency Ratio** | The percentage of Shot Creating Actions that actually result in a "Big Chance." | **Detect "Empty" Possession: Many teams have high SCA but low xG. They are "over-passing" around the box. These teams are high-value targets for "Under" bets.** | Total_xG / Total_SCA |
-| **Bench Impact GDA** | Goal Difference Added (GDA) by the players in the 13th-17th "minutes used" slots. | **Price the Subs: If the "Bench GDA" is high, the team maintains its level for 90 mins. If low, they are vulnerable to 70'+ collapses.** | Sum(GDA_of_Subs) / 90 |
-| **The "Chaos" Recovery Score** | Measures how often a ball recovery in the attacking third leads directly to a shot. | **Target "Pressing Traps": Match a high "Chaos" team against a defense that has a low "Press Resistance" (high turnovers). High potential for Early Goals.** | (Att_3rd_Recoveries) / (Opponent_Losses) |
-| **Elo-Adjusted xPoints** | A team's Expected Points weighted by the strength of the opponents they’ve faced. | **The "Schedule Strength" Filter: A mid-table team with high xPoints against the "Top 6" is an undervalued powerhouse. Bet on them during their "easier" run.** | xPoints * (Opponent_Avg_Elo / League_Avg_Elo) |
-| **The "Clinical" Ratio** | Measures how many Shots on Target (SoT) result in a Goal. It identifies if a team is "hot" or actually talented. | **Predict Regression: If a team scores 1 goal for every 2 SoT, they are "Over-performing." Bet Under on their next game. A normal ratio is ~0.30.** | Goals / Shots_on_Target (FBRef Standard Stats) |
-| **Progressive Reliance** | Percentage of a team's total passes that are "Progressive" (moving 10+ yards toward goal). | **Identify "Boring" Teams: High possession but low Progressive Reliance = "U-Shaped" passing. Great for Under 2.5 Goals and Draw markets.** | PrgP / Total_Passes (FBRef Passing Table) |
-| **Keeper "Save Value"** | The ratio of the quality of shots faced (PSxG) to the actual goals allowed. | **Spot Goalie Slumps: If this is < 1.0, the keeper is a liability. Bet BTTS: Yes regardless of the team's defensive reputation.** | PSxG / Goals_Against (FBRef Adv. Goalkeeping) |
-| **The "Chaos" Press** | Calculates how many defensive actions happen in the opponent's third compared to your own. | **Identify Defensive Style: Ratio > 1.0 means a "High Press" (Chaos). Ratio < 0.4 means a "Low Block" (Bus Parking). Match high press vs. shaky build-up for Over Goals.** | Att_3rd_Tkl / Def_3rd_Tkl (FBRef Defensive Actions) |
-| **Cross Efficiency** | Percentage of a team's total passes that are crosses. | **Price the Corner Market: Teams with high Cross Efficiency (like Burnley or Everton) generate more corners. Use for Over Corners markets.** | Crosses / Total_Passes (FBRef Passing Table) |
-| **"Expected" Discipline** | Compares the number of Fouls committed to the number of Yellow Cards received. | **Target Booking Markets: If a team fouls a lot but hasn't had many cards, they are "due" for a referee crackdown. Great for Over 3.5 Cards.** | Yellow_Cards / Fouls (FBRef Miscellaneous) |
-| **Ball Retention Index (BRI)** | Measures how many times a team loses the ball (Dispossessed + Miscontrols) relative to their total touches. | **Spot Defensive Overload: High BRI teams are "sloppy." If they face a high-pressing opponent, they will concede 2+ goals.** | (Dispossessed + Miscontrols) / Total_Touches |
-| **"Safe" Possession Ratio** | Compares the number of passes in the Defensive 3rd to the Attacking 3rd. | **Detect "Passive" Favorites: If a favorite has a ratio > 2.0, they are just passing at the back. Bet Under 2.5 Goals as they lack "bite."** | Def_3rd_Passes / Att_3rd_Passes |
-| **Recovery Efficiency** | How many ball recoveries a team makes per 100 opponent passes. | **Identify "Hard to Break" Teams: High efficiency means the team regroups instantly. Great for betting Draws or Underdog +1.5.** | Recoveries / (Opponent_Passes / 100) |
-| **Discipline ROI** | The ratio of "Fouls Committed" to "Yellow Cards." It measures how "smart" a team’s tactical fouling is. | **Target Booking Markets: If a team has 10+ fouls per yellow card, they are getting away with murder. Eventually, the ref will "re-adjust." Bet Over Cards.** | Fouls / Yellow_Cards |
-| **Progression Dominance** | The share of a team's progressive distance that comes from Carrying (dribbling) vs. Passing. | **Style Mismatch: If a team relies on Carries (dribbling), they struggle against "Low Blocks." If they rely on Passing, they struggle against "High Presses."** | Prg_Carry_Dist / Prg_Pass_Dist |
-| **Save % vs. xG (S-xG)** | Compares actual Save % to the Expected Save % (based on shot quality). | **Isolate the Keeper: Identifies if a "Clean Sheet" was due to good defense or a goalie having a "career game" (unsustainable luck).** | Actual_Save_% - (1 - (PSxG / SoT)) |
-| **Command of Area %** | Percentage of opponent crosses into the box that are "claimed" or "punched" by the keeper. | **Fade Cross-Heavy Teams: If a keeper has a >10% claim rate, they neutralize "tall" teams like Everton or Brentford. Bet Under Corners or No BTTS.** | Stp / Opp_Crosses (Adv. Goalkeeping Table) |
-| **Direct Attack Index** | Ratio of a team’s "Progressive Carries" to their "Progressive Passes." | **Spot the Counter-Puncher: High ratios (>1.0) mean the team relies on pacey dribblers (e.g., Wolves). Low ratios (<0.5) indicate a "Chess Match" team.** | PrgC / PrgP (Possession & Passing Tables) |
-| **The "Wall" Factor** | Number of shots a defense allows for every 1 shot that actually hits the target (SoT). | **Identify "Tough" Blocks: If this is > 4.0, the defense is incredible at forcing "bad" shots. Their opponents will often have high xG but score zero goals.** | Total_Shots_Allowed / SoTA (Defensive Actions) |
-| **High-Volume Pressing** | Total tackles and interceptions made specifically in the Attacking 3rd. | **Target "Build-up" Mistakes: A team with 15+ Att-3rd Tkl/Int is a nightmare for teams like Brighton. Bet on Team A to Score 1st Half.** | Att_3rd_Tkl + Att_3rd_Int (Defensive Actions) |
-| **Pass Difficulty Adjusted %** | Compares a team's Completion % to their "Progressive Distance." | **Filter "Pass-Padding": If a team has 90% accuracy but low Prog-Dist, they are just passing sideways. They won't cover a -1.5 Handicap.** | (Cmp_% / 100) * (Prg_Dist / Total_Dist) (Passing Table) |
-| **Sweeper Aggression** | The average distance (in yards) from the goal that the keeper performs defensive actions. | **Bet on Over/Under Goals: High AvgDist (>16 yds) means a keeper plays high. Good for Over 2.5 Goals as they are prone to being chipped or caught out.** | AvgDist (Adv. Goalkeeping Table) |
+| **BRT (Ball Recovery Time)** | Measures the average seconds it takes a team to regain possession after losing it. | Identify "Intensity Drops": If a team's BRT increases by >25% mid-game, they are gassing out. | $\text{Total Defensive Half Time} / \text{Recoveries}$ |
+| **Game-State xG Bias** | Compares xG generated when the score is level vs. when a team is leading/trailing. | Filter "Fake" Dominance: Some teams only look good when losing. | $\text{xG (Trailing)} / \text{xG (Level)}$ |
+| **Defensive Line Height** | Estimates how far up the pitch the defense sits based on where they make tackles. | Spot the "High Line" Trap: High line (>45m) vs. Fast Forwards. | $\text{Avg Height of Def Actions}$ |
+| **SCA Efficiency Ratio** | The percentage of Shot Creating Actions that actually result in a "Big Chance." | Detect "Empty" Possession: Many teams have high SCA but low xG. | $\text{Total xG} / \text{Total SCA}$ |
+| **Bench Impact GDA** | Goal Difference Added (GDA) by the players in the 13th-17th "minutes used" slots. | Price the Subs: If low, they are vulnerable to 70'+ collapses. | $\sum \text{GDA of Subs} / 90$ |
+| **Chaos Recovery Score** | Measures how often a ball recovery in the attacking third leads directly to a shot. | Target "Pressing Traps" for Early Goals. | $\text{Att 3rd Recoveries} / \text{Opponent Losses}$ |
+| **Elo-Adjusted xPoints** | A team's Expected Points weighted by strength of opponents. | The "Schedule Strength" Filter. | $\text{xPoints} \times (\text{Opp Avg Elo} / \text{League Avg Elo})$ |
+| **Clinical Ratio** | Measures how many Shots on Target (SoT) result in a Goal. | Predict Regression: If > 0.5, they are unlikely to sustain it. | $\text{Goals} / \text{Shots on Target}$ |
+| **Progressive Reliance** | Percentage of a team's total passes that are "Progressive". | Identify "Boring" Teams: U-shaped passing. | $\text{PrgP} / \text{Total Passes}$ |
+| **Keeper Save Value** | The ratio of the quality of shots faced (PSxG) to the actual goals allowed. | Spot Goalie Slumps: If < 1.0, keeper is a liability. | $\text{PSxG} / \text{Goals Against}$ |
+| **The Chaos Press** | Calculates how many defensive actions happen in the opponent's third compared to your own. | Ratio > 1.0 means High Press. | $\text{Att 3rd Tkl} / \text{Def 3rd Tkl}$ |
+| **Cross Efficiency** | Percentage of a team's total passes that are crosses. | Price the Corner Market: High efficiency = more corners. | $\text{Crosses} / \text{Total Passes}$ |
+| **Expected Discipline** | Compares number of Fouls committed to Yellow Cards received. | Target Booking Markets: High fouls/low cards = "Due" for cards. | $\text{Yellow Cards} / \text{Fouls}$ |
+| **Ball Retention Index** | Measures how many times a team loses the ball relative to total touches. | Spot Defensive Overload: High BRI = "sloppy." | $(\text{Dispossessed} + \text{Miscontrols}) / \text{Total Touches}$ |
+| **Safe Possession Ratio** | Compares passes in Defensive 3rd to Attacking 3rd. | Detect "Passive" Favorites. Ratio > 2.0 = Passive. | $\text{Def 3rd Passes} / \text{Att 3rd Passes}$ |
+| **Recovery Efficiency** | How many ball recoveries a team makes per 100 opponent passes. | Identify "Hard to Break" Teams. | $\text{Recoveries} / (\text{Opponent Passes} / 100)$ |
+| **Discipline ROI** | Ratio of Fouls Committed to Yellow Cards. | Measures "smart" fouling. Target Booking Markets. | $\text{Fouls} / \text{Yellow Cards}$ |
+| **Progression Dominance** | Share of progressive distance from Carrying vs. Passing. | Style Mismatch identification. | $\text{Prg Carry Dist} / \text{Prg Pass Dist}$ |
+| **Save % vs xG** | Compares actual Save % to Expected Save % (based on shot quality). | Isolate the Keeper's Luck. | $\text{Save}\% - (1 - (\text{PSxG} / \text{SoT}))$ |
+| **Command of Area %** | Percentage of opponent crosses "claimed" or "punched." | Fade Cross-Heavy Teams against high claim rate keepers. | $\text{Crosses Stopped} / \text{Opponent Crosses}$ |
+| **Direct Attack Index** | Ratio of Progressive Carries to Progressive Passes. | Spot the Counter-Puncher vs Chess Match teams. | $\text{PrgC} / \text{PrgP}$ |
+| **The Wall Factor** | Number of shots a defense allows for every 1 shot that actually hits the target (SoT). | Identify "Tough" Blocks. | $\text{Total Shots Allowed} / \text{SoT Allowed}$ |
+| **High-Volume Pressing** | Total tackles and interceptions in the Attacking 3rd. | Target "Build-up" Mistakes. | $\text{Att 3rd Tkl} + \text{Att 3rd Int}$ |
+| **Pass Difficulty Adjusted** | Compares Completion % to Progressive Distance. | Filter "Pass-Padding." | $(\text{Cmp}\% / 100) \times (\text{Prg Dist} / \text{Total Dist})$ |
+| **Sweeper Aggression** | Average distance from goal for keeper defensive actions. | Bet on Over/Under Goals (High line = chips/errors). | $\text{Avg Distance of OPA}$ |

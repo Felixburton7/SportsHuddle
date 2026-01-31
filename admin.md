@@ -117,35 +117,24 @@ WHENEVER YOU'RE READY (Monday, Tuesday, whenever)
 
 For each of the 20 Premier League teams, you need to collect data points. These are **season cumulative totals** (not per-match).
 
-### Minimum Fields for Core Metrics (25 fields)
+### Minimum Fields for Core Metrics (Expanded List)
 
-These are the only fields needed to calculate the 10 core metrics:
+To support the 35+ derived metrics (like Chaos Score, Sieve Index, etc.), you need to collect significantly more data than the initial MVP set. 
 
-| # | Field | Example | Where in FBRef |
-|---|-------|---------|----------------|
-| 1 | goals_for | 45 | Squad Standard Stats |
-| 2 | goals_against | 28 | Squad Standard Stats |
-| 3 | games_played | 22 | Squad Standard Stats |
-| 4 | actual_points | 48 | Squad Standard Stats |
-| 5 | xg | 42.3 | Squad Standard Stats |
-| 6 | xga | 30.1 | Squad Standard Stats |
-| 7 | psxg | 32.4 | Squad Goalkeeping (Advanced) |
-| 8 | total_shots | 312 | Squad Shooting |
-| 9 | shots_on_target | 118 | Squad Shooting |
-| 10 | total_passes | 12450 | Squad Passing |
-| 11 | progressive_passes | 1820 | Squad Passing |
-| 12 | progressive_carries | 890 | Squad Possession |
-| 13 | possession_pct | 58.2 | Squad Possession |
-| 14 | touches_att_3rd | 5600 | Squad Possession |
-| 15 | touches_total | 14500 | Squad Possession |
-| 16 | dispossessed | 245 | Squad Possession |
-| 17 | miscontrols | 312 | Squad Possession |
-| 18 | tackles_att_3rd | 89 | Squad Defensive Actions |
-| 19 | interceptions | 234 | Squad Defensive Actions |
-| 20 | sca | 512 | Squad Goal & Shot Creation |
-| 21 | fouls_committed | 245 | Squad Miscellaneous |
-| 22 | yellow_cards | 42 | Squad Miscellaneous |
-| 23 | opponent_touches_att_3rd | 4800 | *See note below* |
+**Total Fields Required:** Approximately 50
+
+| Category | Primary Source | # of Fields | Notes |
+|---|---|---|---|
+| **Standard** | FBRef Squad Standard | 6 | Goals, xG, xGA, Pts, Games, Age |
+| **Shooting** | FBRef Squad Shooting | 3 | Shots, SoT, Avg Dist |
+| **Passing** | FBRef Squad Passing | 8 | Total, Cmp%, PrgP, PrgDist, PPA, Crosses, Att3rd, Def3rd |
+| **Possession** | FBRef Squad Possession | 8 | Touches (Att/Def/Mid), PrgC, PrgDist, Miscon, Dispos, Drb% |
+| **Defense** | FBRef Squad Defensive | 8 | Tackles (Att/Mid/Def), Int, Blocks, Press, Press%, Recoveries |
+| **Goalkeeping** | FBRef Squad GK/Adv | 5 | Saves, PSxG, Crosses Stopped, OPA, OPA Dist |
+| **Discipline** | FBRef Miscellaneous | 3 | Fouls, Yellows, Reds |
+| **Opponent** | Derived / Manual | 6 | Opponent Crosses, Opponent Passes, Opponent Losses, etc. |
+
+**Important:** You should use a spreadsheet to aggregate this data before inserting into SQL, as entering 50 fields one-by-one in the UI is error-prone.
 
 *For opponent_touches_att_3rd: Use the league average or manually sum from opponent data. For MVP, you can estimate or skip Field Tilt.*
 
