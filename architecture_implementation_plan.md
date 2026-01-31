@@ -18,6 +18,9 @@ Every matchweek, subscribers receive:
    - Filter by matchweek
    - Filter by team within a matchweek
    - Same metrics as the PDF, formatted for web
+   - A cheat sheet explaining each ratio and metric presented
+
+
 
 ### The Website
 
