@@ -1,5 +1,5 @@
 # SportsHuddle
-A newsletter style package for each matchweek of the Premier League that is either emailed or messaged through WhatsApp. Opted in by the user they choose text or email or both. 
+A newsletter style package for each matchweek of the Premier League that is either emailed or messaged. Opted in by the user they choose text or email or both. This emailing and messaging will be automated in supabase. 
 
 
 **Contains:**
