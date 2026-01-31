@@ -15,9 +15,10 @@
 5. [PDF Generation](#5-pdf-generation)
 6. [Email System](#6-email-system)
 7. [Authentication & Authorization](#7-authentication--authorization)
-8. [Data Pipeline](#8-data-pipeline)
-9. [Deployment & Infrastructure](#9-deployment--infrastructure)
-10. [Error Handling & Monitoring](#10-error-handling--monitoring)
+8. [Admin Workflow & Data Entry](#8-admin-workflow--data-entry)
+9. [Data Pipeline](#9-data-pipeline)
+10. [Deployment & Infrastructure](#10-deployment--infrastructure)
+11. [Error Handling & Monitoring](#11-error-handling--monitoring)
 
 ---
 
@@ -62,11 +63,11 @@ User → Landing Page → Subscribe Form → /api/subscribe → Supabase (insert
     → Resend (confirmation email) → User clicks confirm → /api/confirm → Supabase (update confirmed=true)
 ```
 
-**Newsletter Flow:**
+**Newsletter Flow (Manual Admin Control):**
 ```
-Admin SQL Insert → DB Trigger → Edge Function (calculate_derived_metrics)
-    → Edge Function (generate_pdf) → Supabase Storage
-    → Cron Trigger (Monday 6pm) → Edge Function (send_newsletter) → Resend → Subscribers
+Admin SQL Insert → DB Trigger (calculate_derived_metrics) → Dashboard auto-updates
+    → Admin triggers PDF generation (API call) → Supabase Storage
+    → Admin reviews PDF → Admin triggers newsletter send (API call) → Resend → Subscribers
 ```
 
 **Dashboard Flow:**
@@ -175,75 +176,95 @@ CREATE TABLE raw_metrics (
     matchweek_id UUID NOT NULL REFERENCES matchweeks(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     
-    -- Standard Stats
+    -- CORE FIELDS (Required for MVP - 25 fields)
+    -- These are the minimum fields needed to calculate the 10 core metrics
+    
+    -- Standard Stats (7 fields)
     goals_for INTEGER NOT NULL DEFAULT 0,
     goals_against INTEGER NOT NULL DEFAULT 0,
-    xg DECIMAL(5,2) NOT NULL DEFAULT 0,
-    npxg DECIMAL(5,2) NOT NULL DEFAULT 0,
-    xag DECIMAL(5,2) NOT NULL DEFAULT 0,
-    xga DECIMAL(5,2) NOT NULL DEFAULT 0,
-    minutes_played INTEGER NOT NULL DEFAULT 0,
-    squad_avg_age DECIMAL(3,1),
-    actual_points INTEGER NOT NULL DEFAULT 0,
     games_played INTEGER NOT NULL DEFAULT 0,
+    actual_points INTEGER NOT NULL DEFAULT 0,
+    xg DECIMAL(5,2) NOT NULL DEFAULT 0,
+    xga DECIMAL(5,2) NOT NULL DEFAULT 0,
+    psxg DECIMAL(5,2) NOT NULL DEFAULT 0,  -- From Squad Advanced Goalkeeping
     
-    -- Shooting
+    -- Shooting (2 fields)
     total_shots INTEGER NOT NULL DEFAULT 0,
     shots_on_target INTEGER NOT NULL DEFAULT 0,
+    
+    -- Passing (2 fields)
+    total_passes INTEGER NOT NULL DEFAULT 0,
+    progressive_passes INTEGER NOT NULL DEFAULT 0,
+    
+    -- Possession (6 fields)
+    progressive_carries INTEGER NOT NULL DEFAULT 0,
+    possession_pct DECIMAL(4,1),
+    touches_att_3rd INTEGER NOT NULL DEFAULT 0,
+    touches_total INTEGER NOT NULL DEFAULT 0,
+    dispossessed INTEGER NOT NULL DEFAULT 0,
+    miscontrols INTEGER NOT NULL DEFAULT 0,
+    
+    -- Defensive Actions (2 fields)
+    tackles_att_3rd INTEGER NOT NULL DEFAULT 0,
+    interceptions INTEGER NOT NULL DEFAULT 0,
+    
+    -- Goal & Shot Creation (1 field)
+    sca INTEGER NOT NULL DEFAULT 0,  -- Shot-creating actions
+    
+    -- Discipline (2 fields)
+    fouls_committed INTEGER NOT NULL DEFAULT 0,
+    yellow_cards INTEGER NOT NULL DEFAULT 0,
+    
+    -- Opponent Stats (1 field - can use league average for MVP)
+    opponent_touches_att_3rd INTEGER NOT NULL DEFAULT 0,
+    
+    -- EXTENDED FIELDS (Optional - for future extended metrics)
+    -- Standard Stats
+    npxg DECIMAL(5,2),
+    xag DECIMAL(5,2),
+    minutes_played INTEGER,
+    squad_avg_age DECIMAL(3,1),
+    
+    -- Shooting
     avg_shot_distance DECIMAL(4,1),
     
     -- Passing
-    total_passes INTEGER NOT NULL DEFAULT 0,
     pass_completion_pct DECIMAL(4,1),
-    progressive_passes INTEGER NOT NULL DEFAULT 0,
-    progressive_pass_dist INTEGER NOT NULL DEFAULT 0,
-    passes_into_pen_area INTEGER NOT NULL DEFAULT 0,
-    crosses INTEGER NOT NULL DEFAULT 0,
-    att_3rd_passes INTEGER NOT NULL DEFAULT 0,
-    def_3rd_passes INTEGER NOT NULL DEFAULT 0,
+    progressive_pass_dist INTEGER,
+    passes_into_pen_area INTEGER,
+    crosses INTEGER,
+    att_3rd_passes INTEGER,
+    def_3rd_passes INTEGER,
     
     -- Possession
-    possession_pct DECIMAL(4,1),
-    touches_att_3rd INTEGER NOT NULL DEFAULT 0,
-    touches_def_3rd INTEGER NOT NULL DEFAULT 0,
-    touches_total INTEGER NOT NULL DEFAULT 0,
-    progressive_carries INTEGER NOT NULL DEFAULT 0,
-    progressive_carry_dist INTEGER NOT NULL DEFAULT 0,
-    dispossessed INTEGER NOT NULL DEFAULT 0,
-    miscontrols INTEGER NOT NULL DEFAULT 0,
+    touches_def_3rd INTEGER,
+    progressive_carry_dist INTEGER,
     dribble_success_pct DECIMAL(4,1),
     
     -- Defensive Actions
-    tackles_att_3rd INTEGER NOT NULL DEFAULT 0,
-    tackles_mid_3rd INTEGER NOT NULL DEFAULT 0,
-    tackles_def_3rd INTEGER NOT NULL DEFAULT 0,
-    interceptions INTEGER NOT NULL DEFAULT 0,
-    blocks INTEGER NOT NULL DEFAULT 0,
-    pressures INTEGER NOT NULL DEFAULT 0,
+    tackles_mid_3rd INTEGER,
+    tackles_def_3rd INTEGER,
+    blocks INTEGER,
+    pressures INTEGER,
     pressure_success_pct DECIMAL(4,1),
-    recoveries INTEGER NOT NULL DEFAULT 0,
+    recoveries INTEGER,
     
     -- Goalkeeping
-    psxg DECIMAL(5,2) NOT NULL DEFAULT 0,
-    keeper_saves INTEGER NOT NULL DEFAULT 0,
-    crosses_stopped INTEGER NOT NULL DEFAULT 0,
-    opa_actions INTEGER NOT NULL DEFAULT 0,
+    keeper_saves INTEGER,
+    crosses_stopped INTEGER,
+    opa_actions INTEGER,
     avg_opa_distance DECIMAL(4,1),
     
     -- Discipline
-    fouls_committed INTEGER NOT NULL DEFAULT 0,
-    yellow_cards INTEGER NOT NULL DEFAULT 0,
-    red_cards INTEGER NOT NULL DEFAULT 0,
+    red_cards INTEGER,
     
     -- Understat/Derived inputs
     ppda DECIMAL(4,1),
-    deep_completions INTEGER NOT NULL DEFAULT 0,
-    sca INTEGER NOT NULL DEFAULT 0,
-    opponent_passes INTEGER NOT NULL DEFAULT 0,
-    opponent_crosses INTEGER NOT NULL DEFAULT 0,
-    opponent_touches_att_3rd INTEGER NOT NULL DEFAULT 0,
-    shots_against INTEGER NOT NULL DEFAULT 0,
-    shots_on_target_against INTEGER NOT NULL DEFAULT 0,
+    deep_completions INTEGER,
+    opponent_passes INTEGER,
+    opponent_crosses INTEGER,
+    shots_against INTEGER,
+    shots_on_target_against INTEGER,
     
     UNIQUE(team_id, matchweek_id)
 );
@@ -1627,67 +1648,340 @@ export function verifyAdmin(request: NextRequest): boolean {
 
 ---
 
-## 8. Data Pipeline
+## 8. Admin Workflow & Data Entry
 
-### 8.1 Weekly Workflow
+### 8.1 Overview
+
+The admin workflow is **100% manual** - no cron jobs, no automatic scheduling. The admin has full control over when data is entered, when PDFs are generated, and when newsletters are sent.
+
+### 8.2 Weekly Workflow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         WEEKLY DATA PIPELINE                             │
-└─────────────────────────────────────────────────────────────────────────┘
-
-Sunday Evening
-    │
-    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  STEP 1: Create Matchweek Record                                         │
-│                                                                          │
-│  INSERT INTO matchweeks (number, season, start_date, end_date)          │
-│  VALUES (23, '2024-25', '2025-01-25', '2025-01-27');                     │
-└─────────────────────────────────────────────────────────────────────────┘
-    │
-Monday AM
-    │
-    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  STEP 2: Insert Raw Metrics (20 teams)                                   │
-│                                                                          │
-│  INSERT INTO raw_metrics (team_id, matchweek_id, goals_for, ...)        │
-│  VALUES (...);  -- Repeat for all 20 teams                              │
-│                                                                          │
-│  ► DB Trigger auto-calculates derived_metrics                           │
-└─────────────────────────────────────────────────────────────────────────┘
-    │
-Monday PM
-    │
-    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  STEP 3: Generate PDF                                                    │
-│                                                                          │
-│  curl -X POST https://sportshuddle.com/api/admin/generate-pdf \         │
-│    -H "Authorization: Bearer $ADMIN_SECRET" \                           │
-│    -d '{"matchweekId": "..."}'                                          │
-│                                                                          │
-│  ► PDF uploaded to Supabase Storage                                     │
-│  ► matchweeks.pdf_url updated                                           │
-└─────────────────────────────────────────────────────────────────────────┘
-    │
-Monday 6pm
-    │
-    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  STEP 4: Send Newsletter                                                 │
-│                                                                          │
-│  curl -X POST https://sportshuddle.com/api/admin/send-newsletter \      │
-│    -H "Authorization: Bearer $ADMIN_SECRET" \                           │
-│    -d '{"matchweekId": "...", "highlights": [...]}'                     │
-│                                                                          │
-│  ► Email sent to all confirmed subscribers                              │
-│  ► matchweeks.email_sent_at updated                                     │
-└─────────────────────────────────────────────────────────────────────────┘
+AFTER MATCHWEEK COMPLETES
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│  1. Create matchweek record             │
+│     (via Supabase UI or SQL)            │
+└─────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│  2. Collect season-to-date stats        │
+│     from FBRef for all 20 teams         │
+│     (15-20 minutes)                     │
+└─────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│  3. Input raw metrics for each team     │
+│     (via Supabase UI or SQL)            │
+│     (30-45 minutes)                     │
+└─────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│  ✓ DB trigger auto-calculates metrics  │
+│  ✓ Dashboard is now live & updated      │
+└─────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│  4. Review dashboard                    │
+│  5. Trigger PDF generation (API call)   │
+│  6. Review PDF                          │
+└─────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│  7. Write 2-3 highlight insights        │
+│  8. Trigger newsletter send (API call)  │
+│  9. Verify emails sent                  │
+└─────────────────────────────────────────┘
+         │
+         ▼
+      ✅ DONE
 ```
 
-### 8.2 Data Entry Helper Script
+**Total time commitment:** ~60-90 minutes per week
+
+### 8.3 Data Requirements
+
+#### Core Fields (Required for MVP - 23 fields)
+
+These are the **only** fields needed to calculate the 10 core metrics:
+
+| Category | Fields | Count |
+|----------|--------|-------|
+| **Standard Stats** | goals_for, goals_against, games_played, actual_points, xg, xga, psxg | 7 |
+| **Shooting** | total_shots, shots_on_target | 2 |
+| **Passing** | total_passes, progressive_passes | 2 |
+| **Possession** | progressive_carries, possession_pct, touches_att_3rd, touches_total, dispossessed, miscontrols | 6 |
+| **Defensive** | tackles_att_3rd, interceptions | 2 |
+| **Creation** | sca (shot-creating actions) | 1 |
+| **Discipline** | fouls_committed, yellow_cards | 2 |
+| **Opponent** | opponent_touches_att_3rd | 1 |
+| **TOTAL** | | **23** |
+
+#### Data Source Mapping
+
+| Field | FBRef Table | Column Name |
+|-------|-------------|-------------|
+| goals_for | Squad Standard Stats | Gls |
+| goals_against | Squad Standard Stats | GA |
+| games_played | Squad Standard Stats | MP |
+| actual_points | Squad Standard Stats | Pts |
+| xg | Squad Standard Stats | xG |
+| xga | Squad Standard Stats | xGA |
+| psxg | Squad Advanced Goalkeeping | PSxG |
+| total_shots | Squad Shooting | Sh |
+| shots_on_target | Squad Shooting | SoT |
+| total_passes | Squad Passing | Cmp |
+| progressive_passes | Squad Passing | PrgP |
+| progressive_carries | Squad Possession | PrgC |
+| possession_pct | Squad Possession | Poss |
+| touches_att_3rd | Squad Possession | Att 3rd |
+| touches_total | Squad Possession | Touches |
+| dispossessed | Squad Possession | Dis |
+| miscontrols | Squad Possession | Mis |
+| tackles_att_3rd | Squad Defensive Actions | Att 3rd |
+| interceptions | Squad Defensive Actions | Int |
+| sca | Squad Goal & Shot Creation | SCA |
+| fouls_committed | Squad Miscellaneous | Fls |
+| yellow_cards | Squad Miscellaneous | CrdY |
+
+**Note on opponent_touches_att_3rd:** For MVP, use league average or estimate. This can be refined later.
+
+### 8.4 Data Entry Methods
+
+#### Method 1: Supabase Table Editor (Simplest)
+
+1. Navigate to Supabase Dashboard → Table Editor
+2. Create matchweek record in `matchweeks` table
+3. For each team, insert row in `raw_metrics` table
+4. Fill in the 23 core fields
+5. Save → DB trigger automatically calculates derived metrics
+
+**Pros:** No SQL knowledge needed, visual interface  
+**Cons:** Slower for 20 teams (~3 mins per team)
+
+#### Method 2: SQL Editor (Faster)
+
+```sql
+-- Step 1: Create matchweek
+INSERT INTO matchweeks (number, season, start_date, end_date)
+VALUES (23, '2024-25', '2025-01-25', '2025-01-27')
+RETURNING id;
+-- Copy the returned UUID
+
+-- Step 2: Insert team data (repeat for all 20 teams)
+INSERT INTO raw_metrics (
+    team_id,
+    matchweek_id,
+    goals_for, goals_against, games_played, actual_points,
+    xg, xga, psxg,
+    total_shots, shots_on_target,
+    total_passes, progressive_passes,
+    progressive_carries, possession_pct, touches_att_3rd, touches_total,
+    dispossessed, miscontrols,
+    tackles_att_3rd, interceptions,
+    sca,
+    fouls_committed, yellow_cards,
+    opponent_touches_att_3rd
+) VALUES (
+    (SELECT id FROM teams WHERE short_name = 'ARS'),
+    'paste-matchweek-uuid-here',
+    45, 28, 22, 48,           -- Standard stats
+    42.3, 30.1, 32.4,         -- xG stats
+    312, 118,                 -- Shooting
+    12450, 1820,              -- Passing
+    890, 58.2, 5600, 14500,   -- Possession
+    245, 312,                 -- Possession (errors)
+    89, 234,                  -- Defensive
+    512,                      -- Creation
+    245, 42,                  -- Discipline
+    4800                      -- Opponent
+);
+```
+
+**Pros:** Faster once you have a template  
+**Cons:** Requires SQL knowledge
+
+#### Method 3: Spreadsheet → SQL Generator (Recommended)
+
+1. Maintain a Google Sheet with columns matching database fields
+2. Each week, paste new data from FBRef CSVs
+3. Use formula to generate INSERT statements
+4. Copy/paste into Supabase SQL Editor
+
+**Pros:** Best balance of speed and simplicity  
+**Cons:** Initial setup required
+
+### 8.5 Manual Triggers
+
+#### Generate PDF
+
+```bash
+curl -X POST https://your-site.com/api/admin/generate-pdf \
+  -H "Authorization: Bearer $ADMIN_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"matchweekId": "uuid-here"}'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "url": "https://supabase-storage-url/reports/SportsHuddle-MW23-2024-25.pdf"
+}
+```
+
+#### Send Newsletter
+
+```bash
+curl -X POST https://your-site.com/api/admin/send-newsletter \
+  -H "Authorization: Bearer $ADMIN_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "matchweekId": "uuid-here",
+    "highlights": [
+      "Arsenal Sieve Index hit 0.52 - keeper saving them",
+      "Wolves most vertical team in the league",
+      "Man United discipline ROI at 15.2 - cards coming?"
+    ]
+  }'
+```
+
+**Response:**
+```json
+{
+  "sent": 1247,
+  "failed": 3,
+  "total": 1250
+}
+```
+
+### 8.6 Important Notes
+
+1. **Season-to-date totals:** You input cumulative season totals, not per-match stats
+2. **No automatic sends:** Emails only go out when you manually trigger them
+3. **Dashboard updates immediately:** As soon as you insert raw metrics, the DB trigger calculates derived metrics
+4. **Review before sending:** Always check the dashboard and PDF before triggering newsletter send
+5. **Time flexibility:** Send newsletter whenever you're ready - Monday morning, Tuesday evening, etc.
+
+---
+
+## 9. Data Pipeline
+
+### 9.1 Overview
+
+The data pipeline is **semi-automatic**:
+- **Automatic:** Derived metrics calculation (via DB trigger)
+- **Manual:** Data entry, PDF generation, newsletter sending
+
+### 9.2 Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        MANUAL INPUT                              │
+│  Admin collects season-to-date stats from FBRef                 │
+│  Admin inserts into raw_metrics table (Supabase UI or SQL)      │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     AUTOMATIC PROCESSING                         │
+│  PostgreSQL Trigger: calculate_derived_metrics()                │
+│  → Calculates 10 core metrics from raw data                     │
+│  → Inserts into derived_metrics table                           │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     IMMEDIATE AVAILABILITY                       │
+│  Dashboard auto-updates (Server Components fetch new data)      │
+│  Users can view metrics immediately                             │
+└─────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        MANUAL TRIGGER                            │
+│  Admin reviews dashboard                                        │
+│  Admin calls /api/admin/generate-pdf                            │
+│  → PDF generated and uploaded to Supabase Storage               │
+│  → matchweeks.pdf_url updated                                   │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        MANUAL TRIGGER                            │
+│  Admin reviews PDF                                              │
+│  Admin calls /api/admin/send-newsletter                         │
+│  → Emails sent to all confirmed subscribers via Resend          │
+│  → matchweeks.email_sent_at updated                             │
+│  → email_log records created                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 9.3 Database Trigger Details
+
+The `calculate_derived_metrics()` trigger fires **automatically** after any INSERT or UPDATE on `raw_metrics`:
+
+```sql
+CREATE TRIGGER trigger_calculate_derived_metrics
+    AFTER INSERT OR UPDATE ON raw_metrics
+    FOR EACH ROW
+    EXECUTE FUNCTION calculate_derived_metrics();
+```
+
+**What it does:**
+1. Reads the newly inserted/updated raw metrics
+2. Calculates all 10 core derived metrics using the formulas
+3. Upserts into `derived_metrics` table (INSERT or UPDATE if exists)
+4. Sets `calculated_at` timestamp
+
+**Performance:** Executes in <100ms per team, so all 20 teams process in ~2 seconds.
+
+### 9.4 Data Validation
+
+**At insertion time:**
+- Database constraints ensure required fields are present
+- CHECK constraints validate ranges (e.g., `matchweek.number BETWEEN 1 AND 38`)
+- UNIQUE constraints prevent duplicate team/matchweek combinations
+
+**Recommended pre-insertion validation:**
+```typescript
+// In a future admin UI or validation script
+function validateRawMetrics(data: RawMetrics): ValidationResult {
+  const errors = [];
+  
+  // Sanity checks
+  if (data.goals_for < 0 || data.goals_against < 0) {
+    errors.push('Goals cannot be negative');
+  }
+  
+  if (data.games_played < 1 || data.games_played > 38) {
+    errors.push('Games played must be between 1 and 38');
+  }
+  
+  if (data.possession_pct < 0 || data.possession_pct > 100) {
+    errors.push('Possession must be between 0 and 100');
+  }
+  
+  // xG sanity check
+  if (data.xg > data.total_shots * 0.5) {
+    errors.push('xG seems unusually high relative to shots');
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
+```
+
+---
+
+## 10. Deployment & Infrastructure
+
+### 10.1 Vercel Configuration
 
 ```bash
 #!/bin/bash
@@ -1713,26 +2007,20 @@ curl -X POST "$SUPABASE_URL/rest/v1/matchweeks" \
 
 ---
 
-## 9. Deployment & Infrastructure
-
-### 9.1 Vercel Configuration
+### 10.2 Vercel Configuration
 
 #### `vercel.json`
 
 ```json
 {
   "framework": "nextjs",
-  "regions": ["lhr1"],
-  "crons": [
-    {
-      "path": "/api/cron/send-newsletter",
-      "schedule": "0 18 * * 1"
-    }
-  ]
+  "regions": ["lhr1"]
 }
 ```
 
-### 9.2 Environment Variables
+**Note:** No cron jobs needed - all newsletter sends are manually triggered by admin.
+
+### 10.3 Environment Variables
 
 | Variable | Location | Description |
 |----------|----------|-------------|
@@ -1744,7 +2032,7 @@ curl -X POST "$SUPABASE_URL/rest/v1/matchweeks" \
 | `NEXT_PUBLIC_BASE_URL` | Vercel + Local | Production URL |
 | `ADMIN_SECRET` | Vercel only | Secret for admin endpoints |
 
-### 9.3 Supabase Storage Setup
+### 10.4 Supabase Storage Setup
 
 ```sql
 -- Create storage bucket for PDFs
@@ -1765,9 +2053,9 @@ FOR INSERT WITH CHECK (
 
 ---
 
-## 10. Error Handling & Monitoring
+## 11. Error Handling & Monitoring
 
-### 10.1 Error Handling Patterns
+### 11.1 Error Handling Patterns
 
 ```typescript
 // lib/errors.ts
@@ -1807,7 +2095,7 @@ export function handleApiError(error: unknown): Response {
 }
 ```
 
-### 10.2 Logging
+### 11.2 Logging
 
 For MVP, use Vercel's built-in logging. Key events to log:
 
@@ -1817,7 +2105,7 @@ For MVP, use Vercel's built-in logging. Key events to log:
 - Newsletter sends (count, failures)
 - API errors
 
-### 10.3 Health Checks
+### 11.3 Health Checks
 
 ```typescript
 // app/api/health/route.ts
