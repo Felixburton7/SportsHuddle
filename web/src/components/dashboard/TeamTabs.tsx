@@ -30,7 +30,7 @@ export function TeamTabs({ teams, current, matchweekId }: TeamTabsProps) {
     };
 
     return (
-        <div className="mb-8 rounded-2xl border border-gray-100 bg-white/90 p-4 shadow-sm">
+        <div className="mb-8 rounded-2xl border border-transparent bg-transparent p-4 shadow-none">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-600">Select Team</h3>
                 <span className="text-xs text-gray-400">{teams.length} teams</span>

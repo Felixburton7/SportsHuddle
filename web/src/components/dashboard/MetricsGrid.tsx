@@ -26,7 +26,7 @@ export function MetricsGrid({ metrics, view = 'all' }: MetricsGridProps) {
     return (
         <div className="space-y-12">
             {/* Team Header */}
-            <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white/95 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 rounded-2xl border border-transparent bg-transparent p-6 shadow-none sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#37003c] to-[#a8005d] p-3 shadow-md">
                         {logoUrl ? (
@@ -60,7 +60,7 @@ export function MetricsGrid({ metrics, view = 'all' }: MetricsGridProps) {
             {/* Core Metrics */}
             {showCore && (
                 <div>
-                    <details className="mb-5 rounded-2xl border border-[#e6d9ea] bg-white px-4 py-3 shadow-sm">
+                    <details className="mb-5 rounded-2xl border border-[#37003c]/30 bg-transparent px-4 py-3 shadow-none">
                         <summary className="cursor-pointer text-sm font-semibold text-[#37003c]">
                             What are Core Metrics?
                         </summary>
