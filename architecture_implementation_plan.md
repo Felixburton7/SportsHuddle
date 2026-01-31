@@ -1,4 +1,4 @@
-# SportsHuddle
+# SportsHuddle.ai
 
 A weekly Premier League analytics newsletter delivering advanced metrics and betting insights to subscribers via email. Each matchweek, subscribers receive a professionally designed PDF report alongside a link to an interactive web dashboard.
 

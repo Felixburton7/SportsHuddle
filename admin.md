@@ -1,6 +1,6 @@
-# SportsHuddle Admin Operations Guide
+# SportsHuddle.ai Admin Operations Guide
 
-A practical guide for the weekly workflow of running SportsHuddle.
+A practical guide for the weekly workflow of running SportsHuddle.ai.
 
 ---
 
