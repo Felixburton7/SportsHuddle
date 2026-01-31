@@ -136,7 +136,7 @@ To support the 35+ derived metrics (like Chaos Score, Sieve Index, etc.), you ne
 
 **Important:** You should use a spreadsheet to aggregate this data before inserting into SQL, as entering 50 fields one-by-one in the UI is error-prone.
 
-*For opponent_touches_att_3rd: Use the league average or manually sum from opponent data. For MVP, you can estimate or skip Field Tilt.*
+*For opponent_att_3rd_touches: Use the league average or manually sum from opponent data. For MVP, you can estimate or skip Field Tilt.*
 
 ### Full Field List (for extended metrics later)
 
@@ -235,7 +235,7 @@ INSERT INTO raw_metrics (
     sca,
     fouls_committed,
     yellow_cards,
-    opponent_touches_att_3rd
+    opponent_att_3rd_touches
 ) VALUES (
     (SELECT id FROM teams WHERE short_name = 'ARS'),
     'paste-matchweek-uuid-here',
@@ -261,7 +261,7 @@ INSERT INTO raw_metrics (
     512,   -- sca
     245,   -- fouls_committed
     42,    -- yellow_cards
-    4800   -- opponent_touches_att_3rd
+    4800   -- opponent_att_3rd_touches
 );
 ```
 
@@ -275,6 +275,32 @@ INSERT INTO raw_metrics (
 4. Copy/paste into Supabase SQL Editor
 
 This is probably the sweet spot between speed and simplicity.
+
+### Method 4: Fixing Mistakes with UPDATE (Important!)
+
+**Problem:** If you try to INSERT the same team's data twice for the same matchweek, you'll get an error:
+```
+ERROR: duplicate key value violates unique constraint "raw_metrics_team_id_matchweek_id_key"
+```
+
+**Solution:** Use UPDATE to fix mistakes instead of re-inserting:
+
+```sql
+-- Fix Arsenal's data for Matchweek 23
+UPDATE raw_metrics 
+SET 
+    goals_for = 46,         -- Corrected value
+    goals_against = 29,     -- Corrected value
+    xg = 43.1,             -- Corrected value
+    -- ... update any other fields that need fixing
+    WHERE team_id = (SELECT id FROM teams WHERE short_name = 'ARS')
+      AND matchweek_id = 'paste-matchweek-uuid-here';
+```
+
+**When to use UPDATE vs INSERT:**
+- **First time entering data:** Use INSERT
+- **Fixing a mistake:** Use UPDATE
+- **Re-calculating metrics:** Just UPDATE the raw data, the trigger will auto-update derived metrics
 
 ---
 
@@ -386,7 +412,7 @@ With practice and a good spreadsheet template, this drops to ~45-60 mins.
 
 ### 2. Opponent Data for Field Tilt
 
-**Question:** How do we get opponent stats (opponent_touches_att_3rd)?
+**Question:** How do we get opponent stats (opponent_att_3rd_touches)?
 
 **Options:**
 - A) Skip Field Tilt metric for now
@@ -456,6 +482,26 @@ SELECT COUNT(*) FROM subscribers WHERE confirmed = true AND unsubscribed_at IS N
 
 # Check email log for a matchweek
 SELECT status, COUNT(*) FROM email_log WHERE matchweek_id = 'UUID' GROUP BY status;
+
+# Find failed emails for a specific matchweek
+SELECT s.email, el.error_message, el.sent_at
+FROM email_log el
+JOIN subscribers s ON el.subscriber_id = s.id
+WHERE el.matchweek_id = 'UUID-here'
+  AND el.status = 'failed'
+ORDER BY el.sent_at DESC;
+
+# Find subscribers who DIDN'T receive a newsletter (for resending)
+SELECT s.id, s.email
+FROM subscribers s
+WHERE s.confirmed = true 
+  AND s.unsubscribed_at IS NULL
+  AND s.id NOT IN (
+    SELECT subscriber_id 
+    FROM email_log 
+    WHERE matchweek_id = 'UUID-here' 
+      AND status = 'sent'
+  );
 ```
 
 ---

@@ -1,4 +1,4 @@
-# SportsHuddle
+# SportsHuddle.ai
 A newsletter style package for each matchweek of the Premier League that is emailed to subscribers. 
 
 **Future Roadmap:** Text message distribution (coming soon).

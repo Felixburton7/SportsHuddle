@@ -1579,11 +1579,17 @@ export async function generatePDFBuffer(props: PDFReportProps): Promise<Buffer> 
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePDFBuffer } from '@/lib/pdf/generate';
+import { z } from 'zod';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// Validation schema
+const generatePdfSchema = z.object({
+  matchweekId: z.string().uuid('Invalid matchweek ID'),
+});
 
 export async function POST(request: NextRequest) {
   // Verify service role auth
@@ -1592,61 +1598,72 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { matchweekId } = await request.json();
+  try {
+    // Validate input
+    const body = await request.json();
+    const { matchweekId } = generatePdfSchema.parse(body);
 
-  // Get matchweek info
-  const { data: matchweek, error: mwError } = await supabase
-    .from('matchweeks')
-    .select('number, season')
-    .eq('id', matchweekId)
-    .single();
+    // Get matchweek info
+    const { data: matchweek, error: mwError } = await supabase
+      .from('matchweeks')
+      .select('number, season')
+      .eq('id', matchweekId)
+      .single();
 
-  if (mwError || !matchweek) {
-    return NextResponse.json({ error: 'Matchweek not found' }, { status: 404 });
-  }
+    if (mwError || !matchweek) {
+      return NextResponse.json({ error: 'Matchweek not found' }, { status: 404 });
+    }
 
-  // Get all team metrics
-  const { data: metrics, error: metricsError } = await supabase
-    .rpc('get_dashboard_data', { p_matchweek_id: matchweekId });
+    // Get all team metrics
+    const { data: metrics, error: metricsError } = await supabase
+      .rpc('get_dashboard_data', { p_matchweek_id: matchweekId });
 
-  if (metricsError || !metrics?.length) {
-    return NextResponse.json({ error: 'No metrics found' }, { status: 400 });
-  }
+    if (metricsError || !metrics?.length) {
+      return NextResponse.json({ error: 'No metrics found' }, { status: 400 });
+    }
 
-  // Generate PDF
-  const pdfBuffer = await generatePDFBuffer({
-    matchweekNumber: matchweek.number,
-    season: matchweek.season,
-    metrics,
-  });
-
-  // Upload to Supabase Storage
-  const fileName = `SportsHuddle-MW${matchweek.number}-${matchweek.season}.pdf`;
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('reports')
-    .upload(fileName, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: true,
+    // Generate PDF
+    const pdfBuffer = await generatePDFBuffer({
+      matchweekNumber: matchweek.number,
+      season: matchweek.season,
+      metrics,
     });
 
-  if (uploadError) {
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    // Upload to Supabase Storage
+    const fileName = `SportsHuddle-MW${matchweek.number}-${matchweek.season}.pdf`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('reports')
+      .upload(fileName, pdfBuffer, {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return NextResponse.json({ error: 'Upload failed', details: uploadError.message }, { status: 500 });
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('reports')
+      .getPublicUrl(fileName);
+
+    // Update matchweek with PDF URL
+    await supabase
+      .from('matchweeks')
+      .update({ pdf_url: publicUrl })
+      .eq('id', matchweekId);
+
+    return NextResponse.json({ success: true, url: publicUrl });
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Validation error', details: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
   }
-
-  // Get public URL
-  const { data: { publicUrl } } = supabase.storage
-    .from('reports')
-    .getPublicUrl(fileName);
-
-  // Update matchweek with PDF URL
-  await supabase
-    .from('matchweeks')
-    .update({ pdf_url: publicUrl })
-    .eq('id', matchweekId);
-
-  return NextResponse.json({ success: true, url: publicUrl });
 }
 ```
+
 
 ---
 
@@ -1680,12 +1697,12 @@ export function newsletterTemplate({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SportsHuddle - Matchweek ${matchweekNumber}</title>
+  <title>SportsHuddle.ai - Matchweek ${matchweekNumber}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="text-align: center; margin-bottom: 30px;">
-    <h1 style="color: #10b981; margin: 0;">⚽ SportsHuddle</h1>
+    <h1 style="color: #10b981; margin: 0;">⚽ SportsHuddle.ai</h1>
     <p style="color: #666; margin: 5px 0;">Matchweek ${matchweekNumber} • ${season}</p>
   </div>
 
@@ -1709,7 +1726,7 @@ export function newsletterTemplate({
 
   <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px; font-size: 12px; color: #666;">
     <p>
-      <strong>Disclaimer:</strong> SportsHuddle provides statistical analysis for entertainment purposes only. 
+      <strong>Disclaimer:</strong> SportsHuddle.ai provides statistical analysis for entertainment purposes only. 
       We do not encourage gambling. If you choose to bet, please do so responsibly. 18+ only.
       <a href="https://www.begambleaware.org" style="color: #10b981;">BeGambleAware.org</a>
     </p>
@@ -1733,6 +1750,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 import { newsletterTemplate } from '@/lib/email/templates/newsletter';
+import { z } from 'zod';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -1741,92 +1759,164 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Validation schema
+const sendNewsletterSchema = z.object({
+  matchweekId: z.string().uuid('Invalid matchweek ID'),
+  highlights: z.array(z.string()).max(5, 'Maximum 5 highlights allowed').default([]),
+});
+
+const PDF_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB limit for email attachment
+const BATCH_SIZE = 50; // Send 50 emails at a time
+const BATCH_DELAY_MS = 1000; // 1 second delay between batches
+
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.ADMIN_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { matchweekId, highlights = [] } = await request.json();
+  try {
+    // Validate input
+    const body = await request.json();
+    const { matchweekId, highlights } = sendNewsletterSchema.parse(body);
 
-  // Get matchweek with PDF
-  const { data: matchweek, error: mwError } = await supabase
-    .from('matchweeks')
-    .select('*')
-    .eq('id', matchweekId)
-    .single();
+    // Get matchweek with PDF
+    const { data: matchweek, error: mwError } = await supabase
+      .from('matchweeks')
+      .select('*')
+      .eq('id', matchweekId)
+      .single();
 
-  if (mwError || !matchweek?.pdf_url) {
-    return NextResponse.json({ error: 'Matchweek or PDF not found' }, { status: 404 });
-  }
+    if (mwError || !matchweek?.pdf_url) {
+      return NextResponse.json({ error: 'Matchweek or PDF not found' }, { status: 404 });
+    }
 
-  // Get confirmed subscribers
-  const { data: subscribers, error: subError } = await supabase
-    .from('subscribers')
-    .select('id, email, confirm_token')
-    .eq('confirmed', true)
-    .is('unsubscribed_at', null);
+    // Get confirmed subscribers
+    const { data: subscribers, error: subError } = await supabase
+      .from('subscribers')
+      .select('id, email, confirm_token')
+      .eq('confirmed', true)
+      .is('unsubscribed_at', null);
 
-  if (subError || !subscribers?.length) {
-    return NextResponse.json({ error: 'No subscribers found' }, { status: 400 });
-  }
+    if (subError || !subscribers?.length) {
+      return NextResponse.json({ error: 'No subscribers found' }, { status: 400 });
+    }
 
-  // Download PDF for attachment
-  const pdfResponse = await fetch(matchweek.pdf_url);
-  const pdfBuffer = await pdfResponse.arrayBuffer();
-  const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+    // Download PDF for attachment
+    const pdfResponse = await fetch(matchweek.pdf_url);
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    
+    // PDF Size Validation
+    const pdfSizeMB = (pdfBuffer.byteLength / (1024 * 1024)).toFixed(2);
+    console.log(`PDF size: ${pdfSizeMB}MB`);
+    
+    let usePdfAttachment = true;
+    let pdfBase64: string | undefined;
+    
+    if (pdfBuffer.byteLength > PDF_SIZE_LIMIT) {
+      console.warn(`PDF exceeds ${PDF_SIZE_LIMIT/(1024*1024)}MB limit. Sending link instead of attachment.`);
+      usePdfAttachment = false;
+    } else {
+      pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
+    }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const dashboardUrl = `${baseUrl}/dashboard?matchweek=${matchweekId}`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const dashboardUrl = `${baseUrl}/dashboard?matchweek=${matchweekId}`;
+    const pdfDownloadUrl = matchweek.pdf_url;
 
-  // Send to all subscribers (batch in production)
-  const results = await Promise.allSettled(
-    subscribers.map(async (subscriber) => {
-      const unsubscribeUrl = `${baseUrl}/api/unsubscribe?token=${subscriber.confirm_token}`;
+    // Send emails in batches with rate limiting
+    const allResults: Array<{ status: 'fulfilled' | 'rejected'; value?: any; reason?: any }> = [];
+    
+    for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+      const batch = subscribers.slice(i, i + BATCH_SIZE);
+      console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(subscribers.length/BATCH_SIZE)} (${batch.length} subscribers)`);
       
-      const { data, error } = await resend.emails.send({
-        from: process.env.EMAIL_FROM!,
-        to: subscriber.email,
-        subject: `⚽ Matchweek ${matchweek.number} Analytics Ready`,
-        html: newsletterTemplate({
-          matchweekNumber: matchweek.number,
-          season: matchweek.season,
-          dashboardUrl,
-          unsubscribeUrl,
-          highlights,
-        }),
-        attachments: [
-          {
-            filename: `SportsHuddle-MW${matchweek.number}.pdf`,
-            content: pdfBase64,
-          },
-        ],
-      });
+      const batchResults = await Promise.allSettled(
+        batch.map(async (subscriber) => {
+          const unsubscribeUrl = `${baseUrl}/api/unsubscribe?token=${subscriber.confirm_token}`;
+          
+          // Modify email content if PDF is too large
+          const emailHtml = usePdfAttachment 
+            ? newsletterTemplate({
+                matchweekNumber: matchweek.number,
+                season: matchweek.season,
+                dashboardUrl,
+                unsubscribeUrl,
+                highlights,
+              })
+            : newsletterTemplate({
+                matchweekNumber: matchweek.number,
+                season: matchweek.season,
+                dashboardUrl,
+                unsubscribeUrl,
+                highlights: [
+                  ...highlights,
+                  `Download the PDF report: ${pdfDownloadUrl}`
+                ],
+              });
 
-      // Log the send
-      await supabase.from('email_log').insert({
-        subscriber_id: subscriber.id,
-        matchweek_id: matchweekId,
-        status: error ? 'failed' : 'sent',
-        resend_id: data?.id,
-        error_message: error?.message,
-      });
+          const { data, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM!,
+            to: subscriber.email,
+            subject: `⚽ Matchweek ${matchweek.number} Analytics Ready`,
+            html: emailHtml,
+            ...(usePdfAttachment && pdfBase64 ? {
+              attachments: [
+                {
+                  filename: `SportsHuddle-MW${matchweek.number}.pdf`,
+                  content: pdfBase64,
+                },
+              ],
+            } : {}),
+          });
 
-      if (error) throw error;
-      return data;
-    })
-  );
+          // Log the send
+          await supabase.from('email_log').insert({
+            subscriber_id: subscriber.id,
+            matchweek_id: matchweekId,
+            status: error ? 'failed' : 'sent',
+            resend_id: data?.id,
+            error_message: error?.message,
+          });
 
-  // Update matchweek
-  await supabase
-    .from('matchweeks')
-    .update({ email_sent_at: new Date().toISOString() })
-    .eq('id', matchweekId);
+          if (error) throw error;
+          return data;
+        })
+      );
+      
+      allResults.push(...batchResults);
+      
+      // Add delay between batches (except after last batch)
+      if (i + BATCH_SIZE < subscribers.length) {
+        console.log(`Waiting ${BATCH_DELAY_MS}ms before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+      }
+    }
 
-  const sent = results.filter(r => r.status === 'fulfilled').length;
-  const failed = results.filter(r => r.status === 'rejected').length;
+    // Update matchweek
+    await supabase
+      .from('matchweeks')
+      .update({ email_sent_at: new Date().toISOString() })
+      .eq('id', matchweekId);
 
-  return NextResponse.json({ sent, failed, total: subscribers.length });
+    const sent = allResults.filter(r => r.status === 'fulfilled').length;
+    const failed = allResults.filter(r => r.status === 'rejected').length;
+
+    return NextResponse.json({ 
+      sent, 
+      failed, 
+      total: subscribers.length,
+      pdfSize: `${pdfSizeMB}MB`,
+      pdfAttached: usePdfAttachment,
+      batches: Math.ceil(subscribers.length / BATCH_SIZE),
+    });
+  } catch (error) {
+    console.error('Newsletter send error:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Validation error', details: error.errors }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Failed to send newsletter' }, { status: 500 });
+  }
 }
 ```
 
@@ -1930,7 +2020,7 @@ These are the **only** fields needed to calculate the 10 core metrics:
 | **Defensive** | tackles_att_3rd, interceptions | 2 |
 | **Creation** | sca (shot-creating actions) | 1 |
 | **Discipline** | fouls_committed, yellow_cards | 2 |
-| **Opponent** | opponent_touches_att_3rd | 1 |
+| **Opponent** | opponent_att_3rd_touches | 1 |
 | **TOTAL** | | **23** |
 
 #### Data Source Mapping
@@ -1960,7 +2050,7 @@ These are the **only** fields needed to calculate the 10 core metrics:
 | fouls_committed | Squad Miscellaneous | Fls |
 | yellow_cards | Squad Miscellaneous | CrdY |
 
-**Note on opponent_touches_att_3rd:** For MVP, use league average or estimate. This can be refined later.
+**Note on opponent_att_3rd_touches:** For MVP, use league average or estimate. This can be refined later.
 
 ### 8.4 Data Entry Methods
 
@@ -1997,7 +2087,7 @@ INSERT INTO raw_metrics (
     tackles_att_3rd, interceptions,
     sca,
     fouls_committed, yellow_cards,
-    opponent_touches_att_3rd
+    opponent_att_3rd_touches
 ) VALUES (
     (SELECT id FROM teams WHERE short_name = 'ARS'),
     'paste-matchweek-uuid-here',
