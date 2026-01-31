@@ -13,7 +13,7 @@ A newsletter style package for each matchweek of the Premier League that is eith
 
 **The whole business runs off a one page website which:**
 *   Explains the company
-*   Has an email and WhatsApp sign up for which is used for the distribution
+*   Has an email and phone number sign up for which is used for the distribution
 *   Completely free to the user. 
 
 
