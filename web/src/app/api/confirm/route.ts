@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
         return NextResponse.redirect(
-            `${baseUrl}?error=invalid_token`
+            `${baseUrl}/confirm/error`
         );
     }
 
@@ -30,11 +30,11 @@ export async function GET(request: NextRequest) {
 
     if (error || !data) {
         return NextResponse.redirect(
-            `${baseUrl}?error=invalid_token`
+            `${baseUrl}/confirm/error`
         );
     }
 
     return NextResponse.redirect(
-        `${baseUrl}?confirmed=true`
+        `${baseUrl}/confirm/success`
     );
 }
