@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -19,8 +20,31 @@ export function SubscribeForm({
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
-    const handleOpenEmail = () => {
-        window.location.href = 'mailto:';
+    const emailOptions = [
+        {
+            label: 'Gmail',
+            href: 'https://mail.google.com/mail/u/0/#inbox',
+            icon: '/assets/email/gmail.png'
+        },
+        {
+            label: 'Outlook',
+            href: 'https://outlook.live.com/mail/0/inbox',
+            icon: '/assets/email/outlook.png'
+        },
+        {
+            label: 'Mail',
+            href: 'https://www.icloud.com/mail/',
+            icon: '/assets/email/mail.png'
+        }
+    ];
+
+    const handleOpenEmail = (href: string) => {
+        if (href.startsWith('mailto:')) {
+            window.location.href = href;
+            return;
+        }
+
+        window.open(href, '_blank', 'noopener,noreferrer');
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -88,10 +112,41 @@ export function SubscribeForm({
             )}
 
             {status === 'success' && (
-                <div className="mt-3 flex justify-center">
-                    <Button type="button" variant="secondary" onClick={handleOpenEmail}>
-                        Open email app
-                    </Button>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                    {emailOptions.map((option) => (
+                        <button
+                            key={option.label}
+                            type="button"
+                            onClick={() => handleOpenEmail(option.href)}
+                            className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#37003c]/30"
+                            aria-label={`Open ${option.label}`}
+                            title={`Open ${option.label}`}
+                        >
+                            {option.icon ? (
+                                <Image
+                                    src={option.icon}
+                                    alt=""
+                                    width={28}
+                                    height={28}
+                                    className="h-7 w-7 object-contain"
+                                />
+                            ) : (
+                                <svg
+                                    className="h-6 w-6 text-gray-600"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2" />
+                                    <path d="M3 7l9 6 9-6" />
+                                </svg>
+                            )}
+                        </button>
+                    ))}
                 </div>
             )}
 
