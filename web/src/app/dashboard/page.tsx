@@ -147,7 +147,7 @@ function DashboardFilters({
 }) {
     return (
         <div className="max-w-7xl mx-auto px-4 mt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-[#e6d9ea] bg-transparent px-4 py-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl bg-transparent px-4 py-3">
                 <div className="flex flex-wrap items-center gap-3">
                     <MetricsFilterButton currentView={currentView} />
                     <MatchweekSelector

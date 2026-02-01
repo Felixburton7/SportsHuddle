@@ -27,16 +27,16 @@ export function Header() {
 
                     <div className="flex items-center gap-3 sm:gap-6">
                         <Link
-                            href="/about"
-                            className="text-gray-600 hover:text-[#37003c] transition-colors hidden sm:block font-semibold text-lg"
-                        >
-                            About
-                        </Link>
-                        <Link
                             href="/dashboard"
                             className="text-gray-600 hover:text-[#37003c] transition-colors hidden sm:block font-semibold text-lg"
                         >
                             Dashboard
+                        </Link>
+                        <Link
+                            href="/about"
+                            className="text-gray-600 hover:text-[#37003c] transition-colors hidden sm:block font-semibold text-lg"
+                        >
+                            About
                         </Link>
                         <Link
                             href="/subscribe"
@@ -71,24 +71,23 @@ export function Header() {
                 </nav>
                 <div
                     id="mobile-nav"
-                    className={`sm:hidden overflow-hidden transition-[max-height,opacity] duration-300 ${
-                        mobileOpen ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'
-                    }`}
+                    className={`sm:hidden overflow-hidden transition-[max-height,opacity] duration-300 ${mobileOpen ? 'max-h-40 opacity-100 mt-3' : 'max-h-0 opacity-0'
+                        }`}
                 >
                     <div className="flex flex-col gap-2 pb-2">
-                        <Link
-                            href="/about"
-                            onClick={() => setMobileOpen(false)}
-                            className="px-3 py-2 rounded-md text-gray-700 hover:text-[#37003c] hover:bg-gray-50 font-semibold"
-                        >
-                            About
-                        </Link>
                         <Link
                             href="/dashboard"
                             onClick={() => setMobileOpen(false)}
                             className="px-3 py-2 rounded-md text-gray-700 hover:text-[#37003c] hover:bg-gray-50 font-semibold"
                         >
                             Dashboard
+                        </Link>
+                        <Link
+                            href="/about"
+                            onClick={() => setMobileOpen(false)}
+                            className="px-3 py-2 rounded-md text-gray-700 hover:text-[#37003c] hover:bg-gray-50 font-semibold"
+                        >
+                            About
                         </Link>
                         <Link
                             href="/subscribe"
