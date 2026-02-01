@@ -92,7 +92,7 @@ export function SubscribeForm({
                 <Button
                     type="submit"
                     isLoading={status === 'loading'}
-                    className="w-full sm:w-auto h-14 px-10 text-lg font-semibold whitespace-nowrap bg-[#37003c] hover:bg-[#37003c]/90 border-none shadow-lg shadow-[#37003c]/20 rounded-b-xl rounded-t-none sm:rounded-l-none sm:rounded-r-xl sm:-ml-px"
+                    className="w-full max-w-sm mx-auto sm:max-w-none sm:mx-0 sm:w-auto h-14 px-10 text-lg font-semibold whitespace-nowrap bg-[#37003c] hover:bg-[#37003c]/90 border-none shadow-lg shadow-[#37003c]/20 rounded-b-xl rounded-t-none sm:rounded-l-none sm:rounded-r-xl sm:-ml-px"
                 >
                     {status === 'loading' ? 'Joining...' : 'Try it'}
                 </Button>
