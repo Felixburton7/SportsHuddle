@@ -17,6 +17,8 @@ export interface Matchweek {
     created_at: string;
 }
 
+export type MatchweekInfo = Pick<Matchweek, 'id' | 'number' | 'season' | 'pdf_url'>;
+
 export interface RawMetrics {
     id: string;
     team_id: string;
@@ -173,6 +175,8 @@ export interface MetricDefinition {
         higherIsBetter: boolean;
     };
     isCore: boolean;
+    backstory?: string;
+    howToUse?: string;
 }
 
 export const CORE_METRICS: MetricDefinition[] = [
@@ -181,6 +185,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'pythagorean_wins',
         description: 'Expected points based on goal ratio - compare to actual to find over/under performers',
         bti: 'Compares expected points to actual results to flag overperformance or hidden value.',
+        backstory: 'Bill James, the father of Sabermetrics, formulated the Pythagorean Expectation for baseball to predict how many games a team *should* have won based on runs scored vs. runs allowed. We adapted this for football using Goals For and Goals Against with an exponent of 1.2 (optimized for the Premier League). This strips away the luck of one-goal variance to reveal the true underlying strength of a team.',
+        howToUse: 'Use this to spot liars. If a team has 45 points but 38 Pythagorean Wins, they are "lucky" and likely to regress (lose more) soon. If they have 30 points but 38 Pythagorean Wins, they are "unlucky" and a great candidate to improve. It is the ultimate "buy low, sell high" indicator.',
         format: 'decimal',
         thresholds: { good: 50, bad: 30, higherIsBetter: true },
         isCore: true
@@ -190,6 +196,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'shot_quality_delta',
         description: 'Average xG per shot - higher means better quality chances',
         bti: 'Separates sustainable chance quality from low-quality volume and streaky finishing.',
+        backstory: 'Not all shots are created equal. A 30-yard screamer has a 2% chance of going in (0.02 xG), while a tap-in has a 60% chance (0.60 xG). Shot Quality Delta measures the difference between the quality of shots a team takes versus the quality of shots they concede. It eliminates the noise of "Total Shots" which can be misleading (e.g., taking 20 terrible shots vs 3 great ones).',
+        howToUse: 'Positive Delta means a team is creating better chances than they allow—the hallmark of a sustainable winning team. If a team is winning but has a negative Delta, they are relying on lucky finishing or a hot goalkeeper. Beware betting on them.',
         format: 'decimal',
         thresholds: { good: 0.12, bad: 0.08, higherIsBetter: true },
         isCore: true
@@ -199,6 +207,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'defensive_fragility',
         description: 'True defensive weakness hidden by keeper performance',
         bti: 'Highlights defenses being propped up by keeper heroics, which often regress.',
+        backstory: 'Traditional goals conceded stats lie because they credit the defense for the goalkeeper\'s saves. Defensive Fragility looks purely at the Post-Shot Expected Goals (PSxG) allowed—the quality of shots on target the keeper faced. It tells you how easily opponents are cutting through the defense, regardless of whether the keeper bailed them out.',
+        howToUse: 'High Fragility = Bad Defense. Even if they have a clean sheet streak, a high Fragility score means the dam is about to break. It is an early warning system for defensive collapse. Target these teams with opposing strikers.',
         format: 'decimal',
         thresholds: { good: 25, bad: 40, higherIsBetter: false },
         isCore: true
@@ -208,6 +218,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'sieve_index',
         description: 'Keeper over-reliance - high values mean defense leaking, keeper saving',
         bti: 'Flags when results rely on unsustainably high saves rather than solid defending.',
+        backstory: 'Named after a "sieve" (which leaks), this index measures the gap between Expected Goals Against (xGA) and actual Goals Allowed, relative to the defensive workload. It specifically isolates how much "work" the goalkeeper is doing to keep the scoreline respectable.',
+        howToUse: 'A high Sieve Index defines a "Paper Tiger" defense—one that looks strong on the scoreboard but is actually terrible. These teams are ticking time bombs. When the keeper\'s form dips, they will concede in bunches. Bet the "Over" on goals when you see a high Sieve Index.',
         format: 'decimal',
         thresholds: { good: 0.2, bad: 0.4, higherIsBetter: false },
         isCore: true
@@ -217,6 +229,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'verticality_index',
         description: 'Forward progression rate relative to possession',
         bti: 'Identifies direct, transition-heavy teams that can outperform in underdog spots.',
+        backstory: 'Possession stats can be useless—think of a team passing sideways for 90 minutes. The Verticality Index measures how fast a team moves the ball towards the opponent\'s goal per unit of possession. It distinguishes "Direct Attacks" (Liverpool/Counter-Attackers) from "Patient Build-up" (Man City).',
+        howToUse: 'Use this for stylistic matchups. High Verticality teams are dangerous underdogs because they don\'t need the ball to score—they just need space. They struggle against "Low Blocks" (teams that sit back) but thrive against "High Lines".',
         format: 'decimal',
         thresholds: { good: 3.0, bad: 2.0, higherIsBetter: true },
         isCore: true
@@ -226,6 +240,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'field_tilt',
         description: 'Territorial dominance percentage in attacking third',
         bti: 'Shows sustained pressure and territorial control that leads to chance volume.',
+        backstory: 'Possession counts passes anywhere. Field Tilt only counts passes in the Attacking Third. It answers: "When the ball matters, who has it?" A 60% Field Tilt means 60% of the "dangerous possession" belongs to this team.',
+        howToUse: 'This is the best proxy for dominance. If a team loses 0-1 but had 70% Field Tilt, it was likely a fluke ("smash and grab"). Trust the Field Tilt over the scoreline for future predictions. High Field Tilt usually leads to wins eventually.',
         format: 'percentage',
         thresholds: { good: 55, bad: 45, higherIsBetter: true },
         isCore: true
@@ -235,6 +251,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'high_press_efficiency',
         description: 'Shot-creating actions per high turnover',
         bti: 'Measures how often a press turns into actual shots, not just activity.',
+        backstory: 'Many teams press, but few press *effectively*. This metric doesn\'t just count pressing actions; it counts how many times winning the ball high up the pitch leads immediately to a shot. It measures the lethality of the press, not just the energy.',
+        howToUse: 'A high score here means a team is a nightmare to play out from the back against. If they play a team with a "Low Ball Retention Index" (sloppy defenders), expect chaos and easy goals. It identifies teams that generate offense from defense.',
         format: 'decimal',
         thresholds: { good: 1.5, bad: 0.8, higherIsBetter: true },
         isCore: true
@@ -244,6 +262,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'clinical_ratio',
         description: 'Goals per shot on target - clinical finishing ability',
         bti: 'Signals hot or cold finishing streaks that typically normalize over time.',
+        backstory: 'This is the "Finishing Streak" meter. It measures how effectively a team converts their shots on target into goals. The league average is typically around 0.30 (30% of shots on target go in).',
+        howToUse: 'This metric is mostly Mean Reverting. If a team has a Clinical Ratio of 0.50 (scoring on half their shots on target), they are running incredibly hot and will cool down—fade them. If it\'s 0.10, they are unlucky and will likely start scoring more soon.',
         format: 'decimal',
         thresholds: { good: 0.35, bad: 0.25, higherIsBetter: true },
         isCore: true
@@ -253,6 +273,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'ball_retention_index',
         description: 'Ball losses per touch - lower is better (less sloppy)',
         bti: 'Captures ball security under pressure and turnover risk in transition.',
+        backstory: 'Simply put: How often does this team give the ball away unforced? It calculates the ratio of miscontrols and dispossessions to total touches. It is a measure of technical security and focus.',
+        howToUse: 'A high number (bad retention) invites pressure. These teams are vulnerable to High Press Efficiency teams. If a team cannot keep the ball, they cannot control the game state, making them volatile betting options.',
         format: 'decimal',
         thresholds: { good: 0.02, bad: 0.04, higherIsBetter: false },
         isCore: true
@@ -262,6 +284,8 @@ export const CORE_METRICS: MetricDefinition[] = [
         key: 'discipline_roi',
         description: 'Fouls per yellow card - tactical fouling efficiency',
         bti: 'Shows when teams are pushing card limits and due for punishment.',
+        backstory: 'Some teams foul "smart" (stopping counters without getting booked), others foul "dumb" (getting booked for frustration). Discipline ROI measures how many fouls a team gets away with before seeing a card. It quantifies the "Dark Arts" of defending.',
+        howToUse: 'A high ROI means they are getting away with murder (literally breaking up play effectively). A low ROI means referees are punishing them strictly. This is crucial for betting on Card markets—bet on cards for teams with low ROI who foul often.',
         format: 'decimal',
         thresholds: { good: 12, bad: 8, higherIsBetter: true },
         isCore: true
