@@ -200,8 +200,8 @@ function DashboardHero() {
         <section className="relative overflow-hidden bg-gradient-to-r from-[#2b002e] via-[#37003c] to-[#4d0054]">
             <div className="absolute inset-0 opacity-60 bg-[linear-gradient(135deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.06)_50%,rgba(255,255,255,0)_70%)]" />
             <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),rgba(255,255,255,0)_60%)]" />
-            <div className="relative max-w-7xl mx-auto px-4 py-10 sm:py-14">
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">Dashboard</h1>
+            <div className="relative max-w-[95%] mx-auto px-4 py-10 sm:py-14">
+                <h1 className="text-5xl sm:text-6xl font-bold text-white">Dashboard</h1>
                 <p className="text-white/70 text-sm mt-2">Premier League Advanced Analytics</p>
             </div>
         </section>
@@ -233,7 +233,7 @@ function DashboardFilters({
                 {/* Top Row: Matchweek Selector (Left) & Controls (Right) */}
                 <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                     <div className="flex flex-col gap-4 w-full lg:w-auto">
-                        <h2 className="text-[32px] font-bold text-[#37003c] leading-none">Matchweek</h2>
+                        <h2 className="text-2xl font-bold text-[#37003c] leading-none">Matchweek</h2>
 
                         <div className="flex flex-wrap items-center gap-3">
                             {/* Filter Button (Visual match) */}
@@ -257,7 +257,7 @@ function DashboardFilters({
                                 label=""
                                 showSeason={false}
                                 containerClassName="w-fit min-w-[200px]"
-                                selectClassName="h-12 rounded-xl border border-[#37003c] bg-transparent px-4 py-2 text-base font-bold text-[#37003c] hover:bg-[#37003c]/5 focus:ring-[#37003c] focus:outline-none pr-10 cursor-pointer"
+                                selectClassName="h-12 rounded-xl border border-[#37003c] bg-transparent px-4 py-2 text-sm font-bold text-[#37003c] hover:bg-[#37003c]/5 focus:ring-[#37003c] focus:outline-none pr-10 cursor-pointer"
                             />
 
                             {/* Reset Button */}
