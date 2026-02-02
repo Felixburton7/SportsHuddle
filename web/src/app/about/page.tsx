@@ -65,10 +65,10 @@ export default function AboutPage() {
                             <h2 className="text-3xl font-bold text-[#37003c] mb-8 border-b border-[#e6d9ea] pb-4">OUR MISSION</h2>
                             <div className="text-lg text-gray-700 space-y-6">
                                 <p>
-                                    Our mission is to arm the SportHuddle community with the elite data they need to out-calculate the bookies and dominate their fantasy leagues.
+                                    Our mission is to arm the SportsHuddle community with the elite data they need to out-calculate the bookies and dominate their fantasy leagues.
                                 </p>
                                 <p>
-                                    SportHuddle delivers on our mission by providing the advanced analytics used by professional bettors, offering insights that go far beyond basic statistics.
+                                    SportsHuddle delivers on our mission by providing the advanced analytics used by professional bettors, offering insights that go far beyond basic statistics.
                                 </p>
                                 <p>
                                     We process match data to generate unique strategy metrics, helping you spot trends and value that the league table often hides.

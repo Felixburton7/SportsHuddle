@@ -35,32 +35,23 @@ export function Hero() {
                 <div className="w-full lg:w-1/2">
                     {/* Headline */}
                     <h1 className="w-full text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-[#37003c]">
-                        Sports<span className="bg-gradient-to-r from-[#37003c] to-[#a8005d] bg-clip-text text-transparent">Huddle</span>
+                        Master the market with <span className="bg-gradient-to-r from-[#37003c] to-[#a8005d] bg-clip-text text-transparent">free Premier League analytics</span>
                     </h1>
-
-                    {/* Subheadline - Minimal */}
-                    <h2 className="text-2xl sm:text-3xl font-bold text-[#37003c] mb-6">
-                        Join SportsHuddle, Beat the Market.
-                    </h2>
 
                     <div className="flex flex-col gap-3 text-lg text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
                         <p className="flex items-start gap-2 text-left">
                             <span className="text-[#a8005d] font-bold mt-1">✓</span>
-                            <span>Join the SportsHuddle - Enter your email, it&apos;s 100% free!</span>
+                            <span>Free to join</span>
                         </p>
                         <p className="flex items-start gap-2 text-left">
                             <span className="text-[#a8005d] font-bold mt-1">✓</span>
-                            <span>Receive AI Powered Data - Weekly PDF for each matchweek</span>
-                        </p>
-                        <p className="flex items-start gap-2 text-left">
-                            <span className="text-[#a8005d] font-bold mt-1">✓</span>
-                            <span>Beat the Market - Make smarter decisions using cutting edge data</span>
+                            <span>Delivered to your inbox</span>
                         </p>
                     </div>
 
                     {/* Subscribe Form */}
                     <div className="w-full max-w-xl mx-auto lg:mx-0">
-                        <SubscribeForm />
+                        <SubscribeForm footerText="Unsubscribe anytime" />
                     </div>
                 </div>
             </div>

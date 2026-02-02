@@ -38,6 +38,11 @@ export function HowItWorks() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {STEPS.map((step, index) => (
                         <Card key={step.number} variant="default" className="relative group h-full overflow-visible bg-white hover:shadow-xl transition-all border-none">
+                            {/* Step Number */}
+                            <div className="absolute top-4 left-4 w-8 h-8 bg-[#00ff85] rounded-full flex items-center justify-center text-sm font-bold text-[#37003c]">
+                                {step.number}
+                            </div>
+
                             {/* Connector line */}
                             {index < STEPS.length - 1 && (
                                 <div className="hidden lg:block absolute top-12 left-1/2 w-full h-px bg-gradient-to-r from-[#37003c]/10 to-transparent -z-10" />
@@ -47,9 +52,6 @@ export function HowItWorks() {
                                 <div className="relative mb-6">
                                     <div className="w-16 h-16 bg-[#37003c] rounded-2xl flex items-center justify-center border border-[#37003c] group-hover:scale-110 transition-all duration-300 shadow-lg z-10">
                                         <step.icon className="w-8 h-8 text-white group-hover:text-[#00ff85] transition-colors" />
-                                    </div>
-                                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#00ff85] rounded-full flex items-center justify-center text-xs font-bold text-[#37003c] z-20">
-                                        {step.number}
                                     </div>
                                 </div>
 
