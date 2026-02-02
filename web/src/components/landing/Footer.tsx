@@ -13,14 +13,6 @@ export function Footer() {
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="flex items-center gap-3 mb-6 group w-fit">
-                            <div className="relative w-12 h-12">
-                                <Image
-                                    src="/logos/Premier League.png"
-                                    alt="Premier League Logo"
-                                    fill
-                                    className="object-contain"
-                                />
-                            </div>
                             <span className="text-2xl font-bold text-[#37003c]">
                                 Sports<span className="bg-gradient-to-r from-[#37003c] to-[#a8005d] bg-clip-text text-transparent">Huddle</span>
                             </span>
@@ -54,10 +46,6 @@ export function Footer() {
                     <p className="text-gray-400 text-sm">
                         © {new Date().getFullYear()} SportsHuddle.ai. All rights reserved.
                     </p>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">Powered with</span>
-                        <span className="text-xs font-bold text-[#37003c]">PREMIER LEAGUE DATA</span>
-                    </div>
                 </div>
             </div>
         </footer>

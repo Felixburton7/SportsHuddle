@@ -39,12 +39,24 @@ export function Hero() {
                     </h1>
 
                     {/* Subheadline - Minimal */}
-                    <p className="text-xl text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
-                        Weekly Premier League analytics delivered to your inbox.
-                        <span className="block mt-2 text-base text-gray-500">
-                            Free to join. Unsubscribe anytime.
-                        </span>
-                    </p>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[#37003c] mb-6">
+                        Join SportsHuddle, Beat the Market.
+                    </h2>
+
+                    <div className="flex flex-col gap-3 text-lg text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
+                        <p className="flex items-start gap-2 text-left">
+                            <span className="text-[#a8005d] font-bold mt-1">✓</span>
+                            <span>Join the SportsHuddle - Enter your email, it&apos;s 100% free!</span>
+                        </p>
+                        <p className="flex items-start gap-2 text-left">
+                            <span className="text-[#a8005d] font-bold mt-1">✓</span>
+                            <span>Receive AI Powered Data - Weekly PDF for each matchweek</span>
+                        </p>
+                        <p className="flex items-start gap-2 text-left">
+                            <span className="text-[#a8005d] font-bold mt-1">✓</span>
+                            <span>Beat the Market - Make smarter decisions using cutting edge data</span>
+                        </p>
+                    </div>
 
                     {/* Subscribe Form */}
                     <div className="w-full max-w-xl mx-auto lg:mx-0">

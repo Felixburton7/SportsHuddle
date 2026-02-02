@@ -63,7 +63,7 @@ export function MetricsPreview() {
                         Beyond Basic Stats
                     </h2>
                     <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                        We calculate 39 unique metrics to find edges others miss.
+                        We calculate unique metrics so you can make informed decisions
                     </p>
                 </div>
 
